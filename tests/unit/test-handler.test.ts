@@ -1,4 +1,4 @@
-import { lambdaHandler } from '@/handler/app';
+import { lambdaHandler } from '@/handlers/app';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 import { expect, describe, it } from '@jest/globals';

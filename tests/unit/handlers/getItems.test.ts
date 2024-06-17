@@ -1,5 +1,5 @@
 // Import getAllItemsHandler function from get-all-items.mjs
-import { getItemsHandler } from '@/handler/getItems';
+import { getItemsHandler } from '@/handlers/getItems';
 // Import dynamodb from aws-sdk
 import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { mockClient } from 'aws-sdk-client-mock';

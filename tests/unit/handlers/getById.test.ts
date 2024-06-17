@@ -1,5 +1,5 @@
 // Import getByIdHandler function from get-by-id.mjs
-import { getByIdHandler } from '@/handler/getById';
+import { getByIdHandler } from '@/handlers/getById';
 // Import dynamodb from aws-sdk
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { APIGatewayProxyEvent } from 'aws-lambda';
