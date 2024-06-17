@@ -11,7 +11,8 @@
         "unit": "jest",
         "lint": "eslint '*.ts' --quiet --fix",
         "compile": "tsc",
-        "test": "npm run compile && npm run unit"
+        "test": "npm run compile && npm run unit",
+        "sam:build": "npm run compile && sam build"
     },
     "dependencies": {
         "@aws-sdk/client-dynamodb": "^3.598.0",
