@@ -3,7 +3,7 @@ import { PutCommand } from '@aws-sdk/lib-dynamodb';
 import { ddbDocClient } from '@/lib/client';
 
 // Get the DynamoDB table name from environment variables
-const tableName = process.env.SAMPLE_TABLE;
+const tableName = 'SampleTable';
 
 /**
  * A simple example includes a HTTP post method to add one item to a DynamoDB table.
@@ -24,7 +24,7 @@ export const putItemHandler = async (event: APIGatewayProxyEvent): Promise<APIGa
     // https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#put-property
     var params = {
         TableName: tableName,
-        Item: { id: id, name: name },
+        Item: { id: id.toString(), name: name.toString() },
     };
 
     try {

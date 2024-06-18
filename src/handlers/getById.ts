@@ -3,7 +3,7 @@ import { GetCommand } from '@aws-sdk/lib-dynamodb';
 import { ddbDocClient } from '@/lib/client';
 
 // Get the DynamoDB table name from environment variables
-const tableName = process.env.SAMPLE_TABLE;
+const tableName = 'SampleTable';
 
 /**
  * A simple example includes a HTTP get method to get all items from a DynamoDB table.
@@ -13,7 +13,7 @@ export const getByIdHandler = async (event: APIGatewayProxyEvent): Promise<APIGa
         throw new Error(`getAllItems only accept GET method, you tried: ${event.httpMethod}`);
     }
     // All log statements are written to CloudWatch
-    console.info('received:', event);
+    console.info('received:', event.path, event.pathParameters);
 
     // Get id from pathParameters from APIGateway because of `/{id}` at template.yaml
     const id = event.pathParameters!.id;
@@ -26,11 +26,11 @@ export const getByIdHandler = async (event: APIGatewayProxyEvent): Promise<APIGa
         Key: { id: id },
     };
 
-    let items: Record<string, any> | undefined = undefined;
+    let items: Record<string, any> = {};
 
     try {
         const data = await ddbDocClient.send(new GetCommand(params));
-        items = data.Item;
+        items = data.Item ? data.Item : {};
     } catch (err) {
         console.log('Error', err);
     }
