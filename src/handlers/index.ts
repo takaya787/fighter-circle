@@ -3,6 +3,7 @@ import { getItemsHandler } from '@/handlers/getItems';
 import { getByIdHandler } from '@/handlers/getById';
 import { putItemHandler } from '@/handlers/putItem';
 import { match } from 'path-to-regexp';
+import { deleteByIdHandler } from './deleteById';
 
 export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const path = event.path;
@@ -17,6 +18,7 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
         { method: 'GET', path: '/items', handler: getItemsHandler },
         { method: 'GET', path: '/items/:id', handler: getByIdHandler },
         { method: 'POST', path: '/items', handler: putItemHandler },
+        { method: 'DELETE', path: '/items/:id', handler: deleteByIdHandler },
     ];
 
     // ルーティングロジック
