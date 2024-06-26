@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { ddbDocClient } from '@/lib/client';
+import { User } from '@/lib/entity/user/user';
 
 // Get the DynamoDB table name from environment variables
 // const tableName = process.env.SAMPLE_TABLE;
@@ -12,9 +13,6 @@ export const getItemsHandler = async (event: APIGatewayProxyEvent): Promise<APIG
     if (event.httpMethod !== 'GET') {
         throw new Error(`getAllItems only accept GET method, you tried: ${event.httpMethod}`);
     }
-    // All log statements are written to CloudWatch
-    // console.info('received:', event);
-    console.log('called getItemsHandler');
 
     // get all items from the table (only first 1MB data, you can use `LastEvaluatedKey` to get the rest of data)
     // https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#scan-property

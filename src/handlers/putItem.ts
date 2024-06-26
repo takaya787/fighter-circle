@@ -1,9 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { PutCommand } from '@aws-sdk/lib-dynamodb';
-import { ddbDocClient } from '@/lib/client';
-
-// Get the DynamoDB table name from environment variables
-const tableName = 'SampleTable';
+import { UserRepository, User } from '@/lib/entity/user/user';
 
 /**
  * A simple example includes a HTTP post method to add one item to a DynamoDB table.
@@ -17,19 +13,16 @@ export const putItemHandler = async (event: APIGatewayProxyEvent): Promise<APIGa
 
     // Get id and name from the body of the request
     const body = JSON.parse(event.body ?? '');
-    const id = body.id;
-    const name = body.name;
-
-    // Creates a new item, or replaces an old item with a new item
-    // https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#put-property
-    var params = {
-        TableName: tableName,
-        Item: { id: id.toString(), name: name.toString() },
-    };
 
     try {
-        const data = await ddbDocClient.send(new PutCommand(params));
-        console.log('Success - item added or updated', data);
+        const newUser = await UserRepository.put(
+            new User({
+                ...User.getPrimaryKey('user_' + body.id.toString()),
+                email: 'test3@email.com',
+                isVerified: true,
+            }),
+        );
+        console.log('Success - item added or updated', JSON.stringify(newUser));
     } catch (err) {
         console.log('Error', err);
     }
