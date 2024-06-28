@@ -1,26 +1,25 @@
 import { deleteByIdHandler } from '@/handlers/deleteById';
-// Import dynamodb from aws-sdk
-import { DynamoDBDocumentClient, DeleteCommand, DeleteCommandOutput } from '@aws-sdk/lib-dynamodb';
+
+import { UserRepository, User } from '@/lib/entity/user/user';
+
 import { APIGatewayProxyEvent } from 'aws-lambda';
-import { mockClient } from 'aws-sdk-client-mock';
 
-// This includes all tests for getByIdHandler()
+const testID = 'id1';
+
 describe('Test deleteByIdHandler', () => {
-    const ddbMock = mockClient(DynamoDBDocumentClient);
+    const deletedUser = new User({
+        ...User.getPrimaryKey('user_' + testID),
+        email: 'test3@email.com',
+        isVerified: true,
+    });
 
+    const deleteUserRepositoryMock = jest.spyOn(UserRepository, 'delete').mockImplementation();
     beforeEach(() => {
-        ddbMock.reset();
+        deleteUserRepositoryMock.mockClear();
     });
 
     // This test invokes deleteByIdHandler() and compare the result
     it('should get item by id', async () => {
-        const deletedItem = { id: 'id1', name: 'name1' };
-
-        const response = { Attributes: deletedItem };
-
-        // Return the specified value whenever the spied get function is called
-        ddbMock.on(DeleteCommand).resolves(response);
-
         const event = {
             httpMethod: 'DELETE',
             path: '/items/id1',
@@ -30,6 +29,8 @@ describe('Test deleteByIdHandler', () => {
         } as unknown as APIGatewayProxyEvent;
 
         const result = await deleteByIdHandler(event);
+
+        expect(deleteUserRepositoryMock).toHaveBeenCalledWith(User.getPrimaryKey(event.pathParameters!.id ?? ''));
 
         const expectedResult = {
             statusCode: 204,
