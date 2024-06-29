@@ -4,8 +4,11 @@ import { getByIdHandler } from '@/handlers/getById';
 import { putItemHandler } from '@/handlers/putItem';
 import { match } from 'path-to-regexp';
 import { deleteByIdHandler } from './deleteById';
+import { dynamodeDBClient } from '@/lib/client';
 
 export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    dynamodeDBClient;
+
     const path = event.path;
     const method = event.httpMethod;
 

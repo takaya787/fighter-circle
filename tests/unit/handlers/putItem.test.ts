@@ -17,10 +17,6 @@ const putUser = new User({
 
 describe('Test putByIdHandler', () => {
     const putUserRepositoryMock = jest.spyOn(UserRepository, 'put').mockResolvedValue(putUser as never);
-    const event = {
-        httpMethod: 'POST',
-        body: JSON.stringify({ id: testID, name: 'name1' }),
-    } as unknown as APIGatewayProxyEvent;
 
     beforeAll(() => {
         // 現在時刻をモック化
@@ -36,7 +32,12 @@ describe('Test putByIdHandler', () => {
     });
 
     // This test invokes putItemHandler() and compare the result
-    it('should call repository collectly', async () => {
+    it('should put User', async () => {
+        const event = {
+            httpMethod: 'POST',
+            body: JSON.stringify({ id: testID, name: 'name1' }),
+        } as unknown as APIGatewayProxyEvent;
+
         const result = await putItemHandler(event);
 
         const expectedResult = {

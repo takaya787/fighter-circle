@@ -1,40 +1,77 @@
 // Import getAllItemsHandler function from get-all-items.mjs
 import { getItemsHandler } from '@/handlers/getItems';
-// Import dynamodb from aws-sdk
-import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
-import { mockClient } from 'aws-sdk-client-mock';
 import { APIGatewayProxyEvent } from 'aws-lambda';
+
+import { UserRepository, User } from '@/lib/entity/user/user';
+
+const mockedDate = new Date();
+const mockedAllUsers = [...Array(10).keys()].map(
+    (id) =>
+        new User({
+            ...User.getPrimaryKey('user_' + id),
+            email: 'test3@email.com',
+            isVerified: true,
+            createdAt: mockedDate,
+            updatedAt: mockedDate,
+        }),
+);
 
 // This includes all tests for getAllItemsHandler()
 describe('Test getAllItemsHandler', () => {
-    const ddbMock = mockClient(DynamoDBDocumentClient);
+    const mockedPartionKey = jest.fn().mockReturnThis();
+    const mockedEq = jest.fn().mockReturnThis();
+    const mockedRun = jest.fn().mockResolvedValue({ items: mockedAllUsers });
 
-    beforeEach(() => {
-        ddbMock.reset();
+    const queryUserRepositoryMock = jest.spyOn(UserRepository, 'query').mockImplementation((): any => {
+        return {
+            partitionKey: mockedPartionKey,
+            eq: mockedEq,
+            run: mockedRun,
+        };
     });
 
-    it('should return ids', async () => {
-        const items = [{ id: 'id1' }, { id: 'id2' }];
+    const event = {
+        httpMethod: 'GET',
+        path: '/items',
+    } as APIGatewayProxyEvent;
 
-        // Return the specified value whenever the spied scan function is called
-        ddbMock.on(ScanCommand).resolves({
-            Items: items,
-        });
+    beforeAll(() => {
+        // 現在時刻をモック化
+        jest.useFakeTimers().setSystemTime(mockedDate);
+    });
+    beforeEach(() => {
+        queryUserRepositoryMock.mockClear();
+    });
 
+    afterAll(() => {
+        // 現在時刻のモック化を解除
+        jest.useRealTimers();
+    });
+
+    it('should return users', async () => {
         const event = {
             httpMethod: 'GET',
             path: '/items',
         } as APIGatewayProxyEvent;
 
-        // Invoke helloFromLambdaHandler()
         const result = await getItemsHandler(event);
 
         const expectedResult = {
             statusCode: 200,
-            body: JSON.stringify(items),
+            body: JSON.stringify(mockedAllUsers),
         };
 
         // Compare the result with the expected result
         expect(result).toEqual(expectedResult);
+    });
+
+    it('should call repository', async () => {
+        await getItemsHandler(event);
+
+        expect(queryUserRepositoryMock).toHaveBeenCalledTimes(1);
+
+        expect(mockedPartionKey).toHaveBeenCalledWith('dynamodeEntity');
+        expect(mockedEq).toHaveBeenCalledWith(User.name);
+        expect(mockedRun).toHaveBeenCalledTimes(1);
     });
 });
