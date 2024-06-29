@@ -23,7 +23,5 @@ export const getItemsHandler = async (event: APIGatewayProxyEvent): Promise<APIG
         body: JSON.stringify(items),
     };
 
-    // All log statements are written to CloudWatch
-    console.info(`response from: ${event.path} statusCode: ${response.statusCode} body: ${response.body}`);
     return response;
 };

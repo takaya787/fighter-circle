@@ -1,44 +1,60 @@
 // Import getByIdHandler function from get-by-id.mjs
 import { getByIdHandler } from '@/handlers/getById';
-// Import dynamodb from aws-sdk
-import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { APIGatewayProxyEvent } from 'aws-lambda';
-import { mockClient } from 'aws-sdk-client-mock';
 
-// This includes all tests for getByIdHandler()
+import { UserRepository, User } from '@/lib/entity/user/user';
+
+const test_id = 'user_id_1';
+const mockedDate = new Date();
+const mockedAllUser = new User({
+    ...User.getPrimaryKey(test_id),
+    email: 'test3@email.com',
+    isVerified: true,
+    createdAt: mockedDate,
+    updatedAt: mockedDate,
+});
+
 describe('Test getByIdHandler', () => {
-    const ddbMock = mockClient(DynamoDBDocumentClient);
+    // This test invokes getByIdHandler() and compare the result
+    const queryUserRepositoryMock = jest.spyOn(UserRepository, 'get').mockResolvedValue(mockedAllUser as never);
 
+    const event = {
+        httpMethod: 'GET',
+        path: '/items/' + test_id,
+        pathParameters: {
+            id: test_id,
+        },
+    } as unknown as APIGatewayProxyEvent;
+
+    beforeAll(() => {
+        // 現在時刻をモック化
+        jest.useFakeTimers().setSystemTime(mockedDate);
+    });
     beforeEach(() => {
-        ddbMock.reset();
+        queryUserRepositoryMock.mockClear();
     });
 
-    // This test invokes getByIdHandler() and compare the result
+    afterAll(() => {
+        // 現在時刻のモック化を解除
+        jest.useRealTimers();
+    });
+
     it('should get item by id', async () => {
-        const item = { id: 'id1' };
-
-        // Return the specified value whenever the spied get function is called
-        ddbMock.on(GetCommand).resolves({
-            Item: item,
-        });
-
-        const event = {
-            httpMethod: 'GET',
-            path: '/items/id1',
-            pathParameters: {
-                id: 'id1',
-            },
-        } as unknown as APIGatewayProxyEvent;
-
-        // Invoke getByIdHandler()
         const result = await getByIdHandler(event);
 
         const expectedResult = {
             statusCode: 200,
-            body: JSON.stringify(item),
+            body: JSON.stringify(mockedAllUser),
         };
 
         // Compare the result with the expected result
         expect(result).toEqual(expectedResult);
+    });
+
+    it('should call UserRepository.get', async () => {
+        await getByIdHandler(event);
+
+        expect(queryUserRepositoryMock).toHaveBeenCalledWith(User.getPrimaryKey(test_id));
+        expect(queryUserRepositoryMock).toHaveBeenCalledTimes(1);
     });
 });
