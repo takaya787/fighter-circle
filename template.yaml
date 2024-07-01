@@ -1,10 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: >
-    ts-hello
-
-    Sample SAM Template for ts-hello
-
+Description: sam-apigateway-authorizer
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Parameters:
     Environment:
@@ -15,14 +11,22 @@ Parameters:
             - stage
             - prod
         Description: The environment to deploy (dev, stage or prod)
+Mappings:
+    EnvironmentMapping:
+        dev:
+            TableName: SampleTableDev
+        stage:
+            TableName: SampleTableStage
+        prod:
+            TableName: SampleTable
 
-Conditions:
-    IsProd:
-        Fn::Equals: [!Ref Environment, prod]
-    IsStage:
-        Fn::Equals: [!Ref Environment, stage]
-    # IsDev:
-    #     Fn::Equals: [!Ref Environment, dev]
+# Conditions:
+#     IsProd:
+#         Fn::Equals: [!Ref Environment, prod]
+#     IsStage:
+#         Fn::Equals: [!Ref Environment, stage]
+#     IsDev:
+#         Fn::Equals: [!Ref Environment, dev]
 Globals:
     Function:
         Timeout: 3
@@ -31,7 +35,43 @@ Globals:
         # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
         LoggingConfig:
             LogFormat: JSON
+        Environment:
+            Variables:
+                USER_TABLE_NAME: !FindInMap [EnvironmentMapping, !Ref Environment, TableName]
+                COGNITO_CLIENT_ID: COGNITO_CLIENT_ID
+
 Resources:
+    ApiGateway:
+        Type: AWS::Serverless::Api
+        Properties:
+            StageName: !Ref Environment
+            Cors: "'*'"
+            Auth:
+                DefaultAuthorizer: CognitoAuthorizer
+                Authorizers:
+                    CognitoAuthorizer:
+                        UserPoolArn: !GetAtt UserPool.Arn
+    # 動作確認用で残す
+    HelloWorldFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            Handler: src/handlers/app.lambdaHandler
+            Runtime: nodejs20.x
+            Architectures:
+                - x86_64
+            Events:
+                Hello:
+                    Type: Api
+                    Properties:
+                        RestApiId: !Ref ApiGateway
+                        Path: /hello
+                        Method: get
+        Metadata:
+            BuildMethod: esbuild
+            BuildProperties:
+                Minify: true
+                KeepNames: true
+                Target: 'es2020'
     UserFunction:
         Type: AWS::Serverless::Function
         Properties:
@@ -39,28 +79,32 @@ Resources:
             Runtime: nodejs20.x
             Architectures:
                 - x86_64
-            Policies:
-                DynamoDBCrudPolicy:
-                    TableName: !Ref SampleTable
+            # Policies:
+            #     DynamoDBCrudPolicy:
+            #         TableName: !Ref SampleTable
             Events:
                 ItemCreate:
                     Type: Api
                     Properties:
+                        RestApiId: !Ref ApiGateway
                         Path: /items
                         Method: post
                 ItemsRead:
                     Type: Api
                     Properties:
+                        RestApiId: !Ref ApiGateway
                         Path: /items
                         Method: get
                 ItemByIdRead:
                     Type: Api
                     Properties:
+                        RestApiId: !Ref ApiGateway
                         Path: /items/{id}
                         Method: get
                 ItemDeleteById:
                     Type: Api
                     Properties:
+                        RestApiId: !Ref ApiGateway
                         Path: /items/{id}
                         Method: delete
         Metadata:
@@ -70,56 +114,79 @@ Resources:
                 KeepNames: true
                 Target: 'es2020'
 
-    SampleTable:
-        Type: AWS::DynamoDB::Table
+    UserPool:
+        Type: AWS::Cognito::UserPool
         Properties:
-            TableName:
-                Fn::If:
-                    - IsProd
-                    - SampleTableProd
-                    - Fn::If:
-                          - IsStage
-                          - SampleTableStage
-                          - SampleTableDev
-            AttributeDefinitions:
-                - AttributeName: pk
-                  AttributeType: S
-                - AttributeName: sk
-                  AttributeType: S
-                - AttributeName: createdAt
-                  AttributeType: S
-                # Define other attributes here as needed
-            KeySchema:
-                - AttributeName: pk
-                  KeyType: HASH
-                - AttributeName: sk
-                  KeyType: RANGE
-            LocalSecondaryIndexes:
-                - IndexName: CreatedAtIndex
-                  KeySchema:
-                      - AttributeName: pk
-                        KeyType: HASH
-                      - AttributeName: createdAt
-                        KeyType: RANGE
-                  Projection:
-                      ProjectionType: ALL
-            ProvisionedThroughput:
-                ReadCapacityUnits: 1
-                WriteCapacityUnits: 1
+            AdminCreateUserConfig:
+                AllowAdminCreateUserOnly: false
+                UnusedAccountValidityDays: 7
+            AutoVerifiedAttributes:
+                - email
+            MfaConfiguration: 'OFF'
+            Policies:
+                PasswordPolicy:
+                    MinimumLength: 8
+                    RequireLowercase: true
+                    RequireNumbers: true
+                    RequireUppercase: true
+    UserPoolAppClient:
+        Type: AWS::Cognito::UserPoolClient
+        Properties:
+            ClientName: web_app
+            UserPoolId: !Ref UserPool
+            ExplicitAuthFlows:
+                - USER_PASSWORD_AUTH
+            GenerateSecret: false
+
+    # SampleTable:
+    #     Type: AWS::DynamoDB::Table
+    #     Properties:
+    #         TableName: !FindInMap [EnvironmentMapping, !Ref Environment, TableName]
+    #         AttributeDefinitions:
+    #             - AttributeName: pk
+    #               AttributeType: S
+    #             - AttributeName: sk
+    #               AttributeType: S
+    #             - AttributeName: createdAt
+    #               AttributeType: S
+    #             # Define other attributes here as needed
+    #         KeySchema:
+    #             - AttributeName: pk
+    #               KeyType: HASH
+    #             - AttributeName: sk
+    #               KeyType: RANGE
+    #         LocalSecondaryIndexes:
+    #             - IndexName: CreatedAtIndex
+    #               KeySchema:
+    #                   - AttributeName: pk
+    #                     KeyType: HASH
+    #                   - AttributeName: createdAt
+    #                     KeyType: RANGE
+    #               Projection:
+    #                   ProjectionType: ALL
+    #         ProvisionedThroughput:
+    #             ReadCapacityUnits: 1
+    #             WriteCapacityUnits: 1
 
 Outputs:
     # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
     # Find out more about other implicit resources you can reference within SAM
     # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-    UserApi:
+    ApiGateway:
         Description: API Gateway endpoint URL for Prod stage for Hello World function
-        Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/user/'
+        Value: !Sub 'https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Prod/user/'
     UserFunction:
         Description: Hello World Lambda Function ARN
         Value: !GetAtt UserFunction.Arn
     UserFunctionIamRole:
         Description: Implicit IAM Role created for item function
         Value: !GetAtt UserFunctionRole.Arn
-    SampleTable:
-        Description: Sample Dynamodb Table
-        Value: !Ref SampleTable
+    UserPoolId:
+        Description: UserPool ID
+        Value: !Ref UserPool
+    UserPoolAppClientId:
+        Description: App Client ID
+        Value: !Ref UserPoolAppClient
+    # SampleTable:
+    #     Description: Sample Dynamodb Table
+    #     Value: !Ref SampleTable
