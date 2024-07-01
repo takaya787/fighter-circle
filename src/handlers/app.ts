@@ -1,4 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { getJwtDecoded } from '@/lib/auth';
 
 /**
  *
@@ -11,11 +12,29 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
  */
 
 export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    // Extract the JWT token from the event
+    const authorization = event.headers.Authorization || event.headers.authorization;
+
+    if (!authorization) {
+        return {
+            statusCode: 401,
+            body: JSON.stringify({
+                message: 'Unauthorized',
+            }),
+        };
+    }
+
+    // Decode the JWT token to get user information
+    const decodedInfo = getJwtDecoded(authorization);
     try {
         return {
             statusCode: 200,
             body: JSON.stringify({
                 message: 'hello world',
+                user_name: decodedInfo['cognito:username'],
+                sub: decodedInfo['sub'],
+                email: decodedInfo['email'],
+                email_verified: decodedInfo['email_verified'],
             }),
         };
     } catch (err) {
