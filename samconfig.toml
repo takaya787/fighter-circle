@@ -17,6 +17,11 @@ lint = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 resolve_s3 = true
+s3_prefix = "ts-hello"
+region = "ap-northeast-1"
+disable_rollback = true
+parameter_overrides = "Environment=\"prod\""
+image_repositories = []
 
 [default.package.parameters]
 resolve_s3 = true
