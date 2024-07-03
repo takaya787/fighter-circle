@@ -19,7 +19,7 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
         return {
             statusCode: 401,
             body: JSON.stringify({
-                message: 'Unauthorized',
+                message: 'Unauthorized from local',
             }),
         };
     }
