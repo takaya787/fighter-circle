@@ -14,11 +14,11 @@ Parameters:
 Mappings:
     EnvironmentMapping:
         dev:
-            TableName: SampleTableDev
+            UserTableName: UserTableDev
         stage:
-            TableName: SampleTableStage
+            UserTableName: UserTableStage
         prod:
-            TableName: SampleTable
+            UserTableName: UserTable
 
 # Conditions:
 #     IsProd:
@@ -37,8 +37,7 @@ Globals:
             LogFormat: JSON
         Environment:
             Variables:
-                USER_TABLE_NAME: !FindInMap [EnvironmentMapping, !Ref Environment, TableName]
-                # COGNITO_CLIENT_ID: COGNITO_CLIENT_ID
+                USER_TABLE_NAME: !FindInMap [EnvironmentMapping, !Ref Environment, UserTableName]
 
 Resources:
     ApiGateway:

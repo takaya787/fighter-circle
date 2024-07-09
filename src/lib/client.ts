@@ -1,20 +1,6 @@
-import { DynamoDBClient, DynamoDB } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import Dynamode from 'dynamode/dynamode';
+import { DynamoDB } from '@aws-sdk/client-dynamodb';
 
-const client = new DynamoDBClient(
-    process.env.AWS_SAM_LOCAL
-        ? {
-              region: 'ap-northeast-1',
-              endpoint: 'http://host.docker.internal:8000',
-              credentials: {
-                  accessKeyId: 'accessKeyId',
-                  secretAccessKey: 'secretAccessKey',
-              },
-          }
-        : {},
-);
-export const ddbDocClient = DynamoDBDocumentClient.from(client);
+import Dynamode from 'dynamode/dynamode';
 
 export const dynamodeDBClient = process.env.AWS_SAM_LOCAL
     ? Dynamode.ddb.local('http://host.docker.internal:8000')

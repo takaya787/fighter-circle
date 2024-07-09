@@ -10,7 +10,7 @@ services:
     dynamodb-admin:
         image: aaronshaf/dynamodb-admin:latest
         environment:
-            DYNAMO_ENDPOINT: ${DYNAMO_ENDPOINT}
+            DYNAMO_ENDPOINT: http://host.docker.internal:8000
         ports:
             - 8001:8001
         depends_on:

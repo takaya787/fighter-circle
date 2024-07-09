@@ -2,7 +2,6 @@ import attribute from 'dynamode/decorators';
 import Entity from 'dynamode/entity';
 import TableManager from 'dynamode/table';
 
-export const USER_TABLE_NAME = 'user-development';
 export const DYNAMODE_INDEX = 'dynamode-index';
 
 export type UserTablePrimaryKey = {
@@ -48,7 +47,7 @@ export class UserTable extends Entity {
 }
 
 export const UserTableManager = new TableManager(UserTable, {
-    tableName: USER_TABLE_NAME,
+    tableName: process.env.USER_TABLE_NAME!,
     partitionKey: 'pk',
     sortKey: 'sk',
     indexes: {
