@@ -1,10 +1,13 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { getItemsHandler } from '@/handlers/getItems';
-import { getByIdHandler } from '@/handlers/getById';
-import { putItemHandler } from '@/handlers/putItem';
 import { match } from 'path-to-regexp';
 import { deleteByIdHandler } from './deleteById';
 import { dynamodeDBClient } from '@/lib/client';
+
+// handlers
+import { getItemsHandler } from '@/handlers/getItems';
+import { getByIdHandler } from '@/handlers/getById';
+import { putItemHandler } from '@/handlers/putItem';
+import { putUserVideoHandler, getUserVideoByIdHandler, getUserVideosHandler } from '@/handlers/user_videos';
 
 export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     dynamodeDBClient;
@@ -18,6 +21,11 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
         path: string;
         handler: (event: APIGatewayProxyEvent) => Promise<APIGatewayProxyResult>;
     }> = [
+        { method: 'GET', path: '/users/:user_id/user_videos/:user_video_id', handler: getUserVideoByIdHandler },
+        { method: 'GET', path: '/users/:user_id/user_videos', handler: getUserVideosHandler },
+        { method: 'POST', path: '/users/:user_id/user_videos', handler: putUserVideoHandler },
+        { method: 'GET', path: '/users/:id', handler: getByIdHandler },
+        { method: 'POST', path: '/users', handler: putItemHandler },
         { method: 'GET', path: '/items', handler: getItemsHandler },
         { method: 'GET', path: '/items/:id', handler: getByIdHandler },
         { method: 'POST', path: '/items', handler: putItemHandler },

@@ -9,15 +9,15 @@ export const putItemHandler = async (event: APIGatewayProxyEvent): Promise<APIGa
         throw new Error(`postMethod only accepts POST method, you tried: ${event.httpMethod} method.`);
     }
     // All log statements are written to CloudWatch
-    console.info('received:', event);
+    // console.info('received:', event);
 
     // Get id and name from the body of the request
     const body = JSON.parse(event.body ?? '');
-
+    console.log('parse_json');
     try {
         const newUser = await UserRepository.put(
             new User({
-                ...User.getPrimaryKey('user_' + body.id.toString()),
+                ...User.getPrimaryKey(body.id.toString()),
                 email: 'test3@email.com',
                 isVerified: true,
             }),
