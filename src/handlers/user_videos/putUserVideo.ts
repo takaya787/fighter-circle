@@ -28,7 +28,7 @@ export const putUserVideoHandler = async (event: APIGatewayProxyEvent): Promise<
         throw error; // その他のエラーはそのままスロー
     }
 
-    const newUser = await UserVideoRepository.put(
+    const newVideo = await UserVideoRepository.create(
         new UserVideo({
             ...UserVideo.getPrimaryKey(userId, uuidv4()),
             videoPath: 'videoPathSample',
@@ -36,11 +36,11 @@ export const putUserVideoHandler = async (event: APIGatewayProxyEvent): Promise<
             viewCount: 0,
         }),
     );
-    console.log('Success - item added or updated', JSON.stringify(newUser));
+    console.log('Success - item added or updated', JSON.stringify(newVideo));
 
     const response = {
         statusCode: 200,
-        body: JSON.stringify(newUser),
+        body: JSON.stringify(newVideo),
     };
 
     // All log statements are written to CloudWatch

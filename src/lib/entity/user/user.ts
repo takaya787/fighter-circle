@@ -23,6 +23,11 @@ export class User extends UserTable {
     @attribute.string()
     username?: string;
 
+    @attribute.object()
+    config: {
+        isAdmin: boolean;
+    };
+
     constructor(props: UserProps) {
         super(props);
 
@@ -30,6 +35,9 @@ export class User extends UserTable {
         this.email = props.email;
         this.isVerified = props.isVerified;
         this.username = props.username;
+        this.config = {
+            isAdmin: false,
+        };
     }
 
     static getPrimaryKey(userId: string): UserTablePrimaryKey {
