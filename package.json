@@ -18,7 +18,8 @@
         "seed": "ts-node -r tsconfig-paths/register --compiler-options {\\\"module\\\":\\\"CommonJS\\\"} ./src/lib/seeds.ts",
         "sam:build": "sam build && sam validate",
         "local:watch": "nodemon --ext ts --watch src --exec 'sam build'",
-        "local:api": "sam local start-api"
+        "local:api": "sam local start-api",
+        "deploy:prod": "sam deploy --no-confirm-changeset --parameter-overrides GoogleClientId=$GOOGLE_CLIENT_ID GoogleClientSecret=$GOOGLE_CLIENT_SECRET Environment=prod"
     },
     "dependencies": {
         "@aws-sdk/client-dynamodb": "^3.598.0",
