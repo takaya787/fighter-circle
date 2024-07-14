@@ -3,6 +3,12 @@ Transform: AWS::Serverless-2016-10-31
 Description: sam-apigateway-authorizer
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Parameters:
+    GoogleClientId:
+        Type: String
+        Description: Google OAuth Client ID
+    GoogleClientSecret:
+        Type: String
+        Description: Google OAuth Client Secret
     Environment:
         Type: String
         Default: dev
@@ -15,10 +21,13 @@ Mappings:
     EnvironmentMapping:
         dev:
             UserTableName: UserTableDev
+            UserPoolName: UserPoolDev
         stage:
             UserTableName: UserTableStage
+            UserPoolName: UserPoolDev
         prod:
             UserTableName: UserTable
+            UserPoolName: UserPool
 
 # Conditions:
 #     IsProd:
@@ -53,6 +62,12 @@ Resources:
     # 動作確認用で残す
     HelloWorldFunction:
         Type: AWS::Serverless::Function
+        Metadata: &CommonFunctionMetadata
+            BuildMethod: esbuild
+            BuildProperties:
+                Minify: true
+                KeepNames: true
+                Target: 'es2020'
         Properties:
             CodeUri: src/handlers
             Handler: app.lambdaHandler
@@ -66,14 +81,10 @@ Resources:
                         RestApiId: !Ref ApiGateway
                         Path: /hello
                         Method: get
-        Metadata:
-            BuildMethod: esbuild
-            BuildProperties:
-                Minify: true
-                KeepNames: true
-                Target: 'es2020'
     UserFunction:
         Type: AWS::Serverless::Function
+        Metadata:
+            <<: *CommonFunctionMetadata
         Properties:
             CodeUri: src/handlers
             Handler: index.lambdaHandler
@@ -118,8 +129,19 @@ Resources:
                     Type: Api
                     Properties:
                         RestApiId: !Ref ApiGateway
-                        Path: /users/{id}
+                        Path: /users/{user_id}
                         Method: get
+    UserVideoFunction:
+        Type: AWS::Serverless::Function
+        Metadata:
+            <<: *CommonFunctionMetadata
+        Properties:
+            CodeUri: src/handlers
+            Handler: index.lambdaHandler
+            Runtime: nodejs20.x
+            Architectures:
+                - x86_64
+            Events:
                 UserVideoRead:
                     Type: Api
                     Properties:
@@ -144,28 +166,35 @@ Resources:
                         RestApiId: !Ref ApiGateway
                         Path: /users/{user_id}/user_videos/{user_video_id}/increment
                         Method: put
-        Metadata:
-            BuildMethod: esbuild
-            BuildProperties:
-                Minify: true
-                KeepNames: true
-                Target: 'es2020'
 
     UserPool:
         Type: AWS::Cognito::UserPool
         Properties:
+            UserPoolName: !FindInMap [EnvironmentMapping, !Ref Environment, UserPoolName]
             AdminCreateUserConfig:
                 AllowAdminCreateUserOnly: false
                 UnusedAccountValidityDays: 7
-            AutoVerifiedAttributes:
-                - email
-            MfaConfiguration: 'OFF'
             Policies:
                 PasswordPolicy:
                     MinimumLength: 8
                     RequireLowercase: true
-                    RequireNumbers: true
                     RequireUppercase: true
+            AliasAttributes:
+                - email
+                - preferred_username
+            AutoVerifiedAttributes:
+                - email
+            MfaConfiguration: 'OFF'
+            Schema:
+                - Name: email
+                  AttributeDataType: String
+                  Required: true
+                  Mutable: true
+    UserPoolDomain:
+        Type: AWS::Cognito::UserPoolDomain
+        Properties:
+            UserPoolId: !Ref UserPool
+            Domain: test-next-auth-sample
     UserPoolAppClient:
         Type: AWS::Cognito::UserPoolClient
         Properties:
@@ -175,8 +204,36 @@ Resources:
                 - ALLOW_USER_SRP_AUTH
                 - ALLOW_ADMIN_USER_PASSWORD_AUTH
                 - ALLOW_REFRESH_TOKEN_AUTH
-            GenerateSecret: false
-
+            # GenerateSecretはNextAuthの利用で必須
+            # 初回作成時はなぜか失敗するので、再度Deployをし直す必要がある
+            GenerateSecret: true
+            AllowedOAuthFlowsUserPoolClient: true
+            AllowedOAuthFlows:
+                - code
+            AllowedOAuthScopes:
+                - email
+                - openid
+                - profile
+            SupportedIdentityProviders:
+                - Google
+                - COGNITO
+            CallbackURLs:
+                - http://localhost:8080/api/auth/callback/cognito
+    UserPoolIdentityProviderGoogle:
+        Type: AWS::Cognito::UserPoolIdentityProvider
+        Properties:
+            ProviderName: Google
+            ProviderType: Google
+            UserPoolId: !Ref UserPool
+            ProviderDetails:
+                client_id: !Ref GoogleClientId
+                client_secret: !Ref GoogleClientSecret
+                authorize_scopes: 'openid email profile'
+            AttributeMapping:
+                email: email
+                email_verified: email_verified
+                preferred_username: name
+                picture: picture
     # UserRegisterTriggerLambda:
     #     Type: AWS::Serverless::Function
     #     Properties:
@@ -243,6 +300,10 @@ Outputs:
     UserPoolAppClientId:
         Description: App Client ID
         Value: !Ref UserPoolAppClient
+    UserPoolIdentityProviderGoogle:
+        Description: Google Congnito Provider ID
+        Value: !Ref UserPoolIdentityProviderGoogle
+
     # UserRegisterTriggerLambda:
     #     Description: User Register Trigger Lambda ID
     #     Value: !Ref UserRegisterTriggerLambda
