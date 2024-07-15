@@ -131,6 +131,23 @@ Resources:
                         RestApiId: !Ref ApiGateway
                         Path: /users/{user_id}
                         Method: get
+    AuthFunction:
+        Type: AWS::Serverless::Function
+        Metadata:
+            <<: *CommonFunctionMetadata
+        Properties:
+            CodeUri: src/handlers
+            Handler: index.lambdaHandler
+            Runtime: nodejs20.x
+            Architectures:
+                - x86_64
+            Events:
+                AuthSignUp:
+                    Type: Api
+                    Properties:
+                        RestApiId: !Ref ApiGateway
+                        Path: /auth/sign_up
+                        Method: post
     UserVideoFunction:
         Type: AWS::Serverless::Function
         Metadata:
@@ -179,9 +196,8 @@ Resources:
                     MinimumLength: 8
                     RequireLowercase: true
                     RequireUppercase: true
-            AliasAttributes:
+            UsernameAttributes:
                 - email
-                - preferred_username
             AutoVerifiedAttributes:
                 - email
             MfaConfiguration: 'OFF'
@@ -291,15 +307,15 @@ Outputs:
     UserFunction:
         Description: Hello World Lambda Function ARN
         Value: !GetAtt UserFunction.Arn
-    UserFunctionIamRole:
-        Description: Implicit IAM Role created for item function
-        Value: !GetAtt UserFunctionRole.Arn
     UserPoolId:
         Description: UserPool ID
         Value: !Ref UserPool
     UserPoolAppClientId:
         Description: App Client ID
         Value: !Ref UserPoolAppClient
+    UserPoolAppClientSecret:
+        Description: App client secret for the User Pool App Client
+        Value: !GetAtt UserPoolAppClient.ClientSecret
     UserPoolIdentityProviderGoogle:
         Description: Google Congnito Provider ID
         Value: !Ref UserPoolIdentityProviderGoogle

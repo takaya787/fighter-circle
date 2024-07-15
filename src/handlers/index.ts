@@ -7,7 +7,13 @@ import { dynamodeDBClient } from '@/lib/client';
 import { getItemsHandler } from '@/handlers/getItems';
 import { getByIdHandler } from '@/handlers/getById';
 import { putItemHandler } from '@/handlers/putItem';
-import { putUserVideoHandler, getUserVideoByIdHandler, getUserVideosHandler } from '@/handlers/user_videos';
+import {
+    putUserVideoHandler,
+    getUserVideoByIdHandler,
+    getUserVideosHandler,
+    incrementUserVideoCountHandler,
+} from '@/handlers/user_videos';
+import { signUpHandler } from '@/handlers/auth/signUp';
 
 export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     dynamodeDBClient;
@@ -21,6 +27,11 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
         path: string;
         handler: (event: APIGatewayProxyEvent) => Promise<APIGatewayProxyResult>;
     }> = [
+        {
+            method: 'PUT',
+            path: '/users/:user_id/user_videos/:user_video_id/increment',
+            handler: incrementUserVideoCountHandler,
+        },
         { method: 'GET', path: '/users/:user_id/user_videos/:user_video_id', handler: getUserVideoByIdHandler },
         { method: 'GET', path: '/users/:user_id/user_videos', handler: getUserVideosHandler },
         { method: 'POST', path: '/users/:user_id/user_videos', handler: putUserVideoHandler },
@@ -30,6 +41,7 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
         { method: 'GET', path: '/items/:id', handler: getByIdHandler },
         { method: 'POST', path: '/items', handler: putItemHandler },
         { method: 'DELETE', path: '/items/:id', handler: deleteByIdHandler },
+        { method: 'POST', path: '/auth/sign_up', handler: signUpHandler },
     ];
 
     // ルーティングロジック
@@ -38,10 +50,6 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
         const matched = matchPath(path);
 
         if (method === route.method && matched) {
-            // // パスパラメータがある場合はそれを event.pathParameters に設定
-            // if (matched.params && typeof matched.params === 'object') {
-            //     event.pathParameters = matched.params as { [key: string]: string };
-            // }
             return await route.handler(event);
         }
     }

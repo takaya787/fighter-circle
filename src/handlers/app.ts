@@ -13,13 +13,13 @@ import { getJwtDecoded } from '@/lib/auth';
 
 export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     // Extract the JWT token from the event
-    const authorization = event.headers.Authorization || event.headers.authorization;
-
+    const authorization = event.headers.Authorization;
     if (!authorization) {
         return {
             statusCode: 401,
             body: JSON.stringify({
                 message: 'Unauthorized from local',
+                tableName: process.env.USER_TABLE_NAME,
             }),
         };
     }
