@@ -1,5 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { UserRepository, User } from '@/lib/entity/user/user';
+import { handleDynamoDBError } from '@/lib/entity/errorHandler';
 
 /**
  * A simple example includes a HTTP post method to add one item to a DynamoDB table.
@@ -29,16 +30,15 @@ export const signUpHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
 
         return response;
     } catch (err) {
-        if (err instanceof Error && err.name === 'ConditionalCheckFailedException') {
+        const dynamodeError = handleDynamoDBError(err);
+        if (!dynamodeError) {
             console.log('Info', `Existing User. USER_ID:${body.id.toString()}`);
-
-            const response = {
+            return {
                 statusCode: 204,
                 body: '',
             };
-
-            return response;
         }
+
         console.log('Error', err);
 
         const response = {
