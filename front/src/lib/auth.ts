@@ -18,8 +18,9 @@ const authOptions: AuthOptions = {
             //checks: 'nonce'がないとサインインできるけどエラーが起きて別のアカウントで試せと言われる
         }),
     ],
+
     callbacks: {
-        signIn: async ({ user, profile }) => {
+        async signIn({ user, profile }) {
             console.log('SignIn Callback');
             console.log(user);
             console.log(profile);
@@ -40,7 +41,8 @@ const authOptions: AuthOptions = {
 
             return true;
         },
-        session: async function ({ session, token }) {
+
+        async session({ session, token }) {
             return {
                 ...session,
                 bearerToken: token.bearerToken,
