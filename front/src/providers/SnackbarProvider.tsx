@@ -1,3 +1,5 @@
+'use client';
+
 import { Snackbar, SnackbarType } from '@/components/Snackbar';
 
 import { createContext, useReducer, useContext, useCallback } from 'react';
@@ -37,10 +39,13 @@ export const useSnackbar = () => {
     }
     const { dispatch } = context;
 
-    return useCallback(
-        (snack: SnackbarType) => {
-            dispatch({ type: 'ADD_SNACKBAR', payload: { current: snack } });
-        },
-        [dispatch],
-    );
+    // return useCallback(
+    //     (snack: SnackbarType) => {
+    //         dispatch({ type: 'ADD_SNACKBAR', payload: { current: snack } });
+    //     },
+    //     [dispatch],
+    // );
+    return (snack: SnackbarType) => {
+        dispatch({ type: 'ADD_SNACKBAR', payload: { current: snack } });
+    };
 };

@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import NextAuthProvider from '@/providers/NextAuth';
+
 import { getSession } from '@/lib/auth';
 import { Menu } from 'lucide-react';
 import { BottomNavigation } from '@/components/BottomNavigation';
+import NextAuthProvider from '@/providers/NextAuth';
+import SnackbarProvider from '@/providers/SnackbarProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -18,7 +20,6 @@ export default async function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    //
     const session = await getSession();
 
     return (
@@ -29,8 +30,10 @@ export default async function RootLayout({
                         <h1 className="text-2xl font-bold">FighterCircle</h1>
                         <Menu className="w-6 h-6" />
                     </header>
-                    {children}
-                    <BottomNavigation />
+                    <SnackbarProvider>
+                        {children}
+                        <BottomNavigation />
+                    </SnackbarProvider>
                 </NextAuthProvider>
             </body>
         </html>

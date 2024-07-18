@@ -6,7 +6,7 @@ export default function isLoggedIn() {
     const { data: session } = useSession();
 
     useEffect(() => {
-        console.log(session?.bearerToken);
+        // console.log(session?.bearerToken);
     });
 
     if (!session) {

@@ -3,7 +3,7 @@ import { LoginButton, LogoutButton } from '@/components/AuthenticateButton';
 import IsLoggedin from '@/components/isLoggedIn';
 import React from 'react';
 
-export default function Root() {
+export default function Home() {
     return (
         <main className="flex min-h-screen flex-col items-center justify-start p-4 sm:p-6 lg:p-8 xl:p-24 max-w-7xl mx-auto w-full">
             <div className="text-center">
