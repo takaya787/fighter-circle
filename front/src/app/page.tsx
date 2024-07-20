@@ -1,37 +1,84 @@
 'use client';
-import { LoginButton, LogoutButton } from '@/components/AuthenticateButton';
-import IsLoggedin from '@/components/isLoggedIn';
 import React from 'react';
+import Link from 'next/link';
+import { Video, Users, Share2 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
-export default function Home() {
+import { LoginButton } from '@/components/AuthenticateButton';
+
+const Home = () => {
+    const { status } = useSession();
     return (
-        <main className="flex min-h-screen flex-col items-center justify-start p-4 sm:p-6 lg:p-8 xl:p-24 max-w-7xl mx-auto w-full">
-            <div className="text-center">
-                <IsLoggedin />
-                <LoginButton />
-                <LogoutButton />
-            </div>
-
-            <section className="w-full my-4">
-                <h2 className="text-xl sm:text-2xl font-semibold mb-4">Featured Video</h2>
-                <div className="bg-gray-200 aspect-video rounded-lg flex items-center justify-center w-full max-w-4xl mx-auto">
-                    <span className="text-gray-600">Video Player</span>
+        <div className="bg-gray-100 min-h-screen flex flex-col">
+            <main className="flex-grow p-4 space-y-6">
+                <div className="bg-white shadow-lg rounded-lg p-6">
+                    <h2 className="text-xl font-semibold text-red-500">格闘技愛好家のためのSNS</h2>
+                    <p className="text-gray-600 mt-1">スパーリング動画の共有と学びの場</p>
+                    <p className="mt-4">
+                        FighterCircleは、格闘技を愛する人々のためのコミュニティです。トレーニングの成果を共有し、新しい技を学び、仲間とつながりましょう。
+                    </p>
                 </div>
-            </section>
 
-            <section className="w-full">
-                <h2 className="text-xl sm:text-2xl font-semibold mb-4">Recent Videos</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                    {[1, 2, 3, 4].map((videoNum) => (
-                        <div
-                            key={videoNum}
-                            className="bg-gray-200 aspect-video rounded-lg flex items-center justify-center"
-                        >
-                            <span className="text-gray-600">Video {videoNum}</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[
+                        {
+                            icon: Video,
+                            title: '動画共有',
+                            description: 'スパーリングやトレーニング動画を簡単に共有。技の向上を視覚的に確認できます。',
+                        },
+                        {
+                            icon: Users,
+                            title: 'コミュニティ',
+                            description: '同じ志を持つ仲間とつながり、互いに高め合える環境を提供します。',
+                        },
+                        {
+                            icon: Share2,
+                            title: 'フィードバック',
+                            description: '経験豊富な格闘家や指導者からアドバイスをもらい、技術を磨けます。',
+                        },
+                    ].map((feature, index) => (
+                        <div key={index} className="bg-white shadow rounded-lg p-6">
+                            <h3 className="flex items-center text-lg font-semibold mb-2">
+                                <feature.icon className="mr-2 text-red-500" size={24} />
+                                {feature.title}
+                            </h3>
+                            <p className="text-gray-600">{feature.description}</p>
                         </div>
                     ))}
                 </div>
-            </section>
-        </main>
+
+                <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                    {status === 'authenticated' && (
+                        <>
+                            <h3 className="text-center text-xl font-semibold text-red-700 mb-4">
+                                あなたの技を世界に発信しよう！
+                            </h3>
+                            <div className="flex justify-center">
+                                <Link
+                                    href="/upload"
+                                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded flex items-center transition duration-300"
+                                >
+                                    ビデオを投稿する
+                                </Link>
+                            </div>
+                        </>
+                    )}
+
+                    {status === 'unauthenticated' && (
+                        <>
+                            {' '}
+                            <p className="text-center text-red-700 mb-4">
+                                今すぐ参加して、あなたの格闘技の旅を次のレベルへ！
+                            </p>
+                            <div className="flex justify-center">
+                                <LoginButton />
+                            </div>
+                        </>
+                    )}
+                </div>
+            </main>
+        </div>
     );
-}
+};
+
+export default Home;
