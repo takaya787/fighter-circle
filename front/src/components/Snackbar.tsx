@@ -27,7 +27,7 @@ export const Snackbar = ({ text, icon: Icon, handleClose, variant }: TSnackbarPr
     useEffect(() => {
         setIsVisible(true);
 
-        const timer = setTimeout(() => handleClose(), 3000);
+        const timer = setTimeout(() => handleClose(), 1000);
         return () => clearTimeout(timer);
     }, []);
 

@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 
 import { getSession } from '@/lib/auth';
-import { Menu } from 'lucide-react';
+import { HeaderMenu } from '@/components/HeaderMenu';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import NextAuthProvider from '@/providers/NextAuth';
 import SnackbarProvider from '@/providers/SnackbarProvider';
@@ -26,10 +26,7 @@ export default async function RootLayout({
         <html lang="ja">
             <body className={inter.className}>
                 <NextAuthProvider session={session}>
-                    <header className="bg-red-600 text-white p-4 flex justify-between items-center">
-                        <h1 className="text-2xl font-bold">FighterCircle</h1>
-                        <Menu className="w-6 h-6" />
-                    </header>
+                    <HeaderMenu />
                     <SnackbarProvider>
                         {children}
                         {session?.user && <BottomNavigation />}
