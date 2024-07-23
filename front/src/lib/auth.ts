@@ -44,7 +44,7 @@ const authOptions: AuthOptions = {
         },
         async jwt({ token, user, account }) {
             if (account && user) {
-                console.debug('Initial Login With Account');
+                console.debug('Initial Login With POST Request');
                 return {
                     idToken: account.id_token,
                     accessToken: account.access_token,
@@ -56,14 +56,11 @@ const authOptions: AuthOptions = {
             }
 
             if (token && token.accessTokenExpires! < Date.now()) {
-                console.log(token);
-                console.debug('accessTokenExpires', new Date(token.accessTokenExpires!));
-                console.debug('now', new Date());
-                console.debug('Refresh Token is expired!');
                 return refreshCognitoToken(token);
             }
 
             console.debug('token is alive');
+            console.debug('Next Expires: ', new Date(token.accessTokenExpires!));
             return token;
         },
     },

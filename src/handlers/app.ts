@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { getJwtDecoded } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
 
 /**
  *
@@ -25,16 +25,16 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
     }
 
     // Decode the JWT token to get user information
-    const decodedInfo = getJwtDecoded(authorization);
+    const decodedInfo = getCurrentUser(authorization);
     try {
         return {
             statusCode: 200,
             body: JSON.stringify({
                 message: 'hello world',
-                user_name: decodedInfo['cognito:username'],
-                sub: decodedInfo['sub'],
-                email: decodedInfo['email'],
-                email_verified: decodedInfo['email_verified'],
+                user_name: decodedInfo.preferred_username ?? 'Not Named',
+                pk: decodedInfo.pk,
+                email: decodedInfo.email,
+                email_verified: decodedInfo.email_verified,
             }),
         };
     } catch (err) {

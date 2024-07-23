@@ -15,19 +15,14 @@ export const refreshCognitoToken = async (token: JWT): Promise<JWT> => {
 
     try {
         const response = await client.send(command);
-        // console.debug('refresh response');
-        // console.debug(response);
 
-        // console.debug('Token updated!');
+        console.debug('Token updated!');
         return {
             ...token,
             idToken: response.AuthenticationResult?.IdToken,
             accessToken: response.AuthenticationResult?.AccessToken,
             accessTokenExpires: Date.now() + response.AuthenticationResult?.ExpiresIn! * 1000,
-            // refreshTokenは帰ってきた場合のみ、更新
-            refreshToken: response.AuthenticationResult?.RefreshToken
-                ? response.AuthenticationResult?.RefreshToken
-                : token.refreshToken,
+            refreshToken: token.refreshToken,
         };
     } catch (error) {
         console.error('Error refreshing token:', error);

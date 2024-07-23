@@ -220,6 +220,12 @@ Resources:
                 - ALLOW_USER_SRP_AUTH
                 - ALLOW_ADMIN_USER_PASSWORD_AUTH
                 - ALLOW_REFRESH_TOKEN_AUTH
+            # refreshTokenの期限を1年間にする
+            TokenValidityUnits:
+                AccessToken: days
+                IdToken: days
+                RefreshToken: days
+            RefreshTokenValidity: 365
             # GenerateSecretはNextAuthの利用で必須
             # 初回作成時はなぜか失敗するので、再度Deployをし直す必要がある
             GenerateSecret: true
