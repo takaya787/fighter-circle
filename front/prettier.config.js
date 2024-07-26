@@ -1,0 +1,35 @@
+module.exports = {
+    semi: true,
+    trailingComma: 'es5',
+    singleQuote: true,
+    quoteProps: 'as-needed',
+    printWidth: 120,
+    tabWidth: 4,
+    htmlWhitespaceSensitivity: 'css',
+    endOfLine: 'lf',
+    embeddedLanguageFormatting: 'off',
+
+    // import order
+
+    importOrder: [
+        '^(react/(.*)$)|^(react$)',
+        '^(next/(.*)$)|^(next$)',
+        '^(react-.+|.+-react)$',
+        '^(next-.+|.+-next)$',
+        '^types$',
+        '^@local/(.*)$',
+        '^@/config/(.*)$',
+        '^@/service/(.*)$',
+        '^@/lib/(.*)$',
+        '^@/components/(.*)$',
+        '^@/styles/(.*)$',
+        '^[./]',
+    ],
+    importOrderSeparation: false,
+    importOrderSortSpecifiers: true,
+    importOrderBuiltinModulesToTop: true,
+    importOrderParserPlugins: ['typescript', 'jsx', 'decorators-legacy'],
+    importOrderMergeDuplicateImports: true,
+    importOrderCombineTypeAndValueImports: true,
+    plugins: ['@trivago/prettier-plugin-sort-imports'],
+};
