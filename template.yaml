@@ -22,12 +22,15 @@ Mappings:
         dev:
             UserTableName: UserTableDev
             UserPoolName: UserPoolDev
+            VideoBucketName: fighter-circle-user-video-dev
         stage:
             UserTableName: UserTableStage
             UserPoolName: UserPoolDev
+            VideoBucketName: fighter-circle-user-video-stage
         prod:
             UserTableName: UserTable
             UserPoolName: UserPool
+            VideoBucketName: fighter-circle-user-video
 
 # Conditions:
 #     IsProd:
@@ -256,6 +259,24 @@ Resources:
                 email_verified: email_verified
                 preferred_username: name
                 picture: picture
+    UserVideoS3Bucket:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: !FindInMap [EnvironmentMapping, !Ref Environment, VideoBucketName]
+            CorsConfiguration:
+                CorsRules:
+                    - AllowedHeaders:
+                          - '*'
+                      AllowedMethods:
+                          - HEAD
+                          - GET
+                          - PUT
+                          - POST
+                          - DELETE
+                      AllowedOrigins:
+                          - '*'
+                      ExposedHeaders:
+                          - ETag
     # UserRegisterTriggerLambda:
     #     Type: AWS::Serverless::Function
     #     Properties:
