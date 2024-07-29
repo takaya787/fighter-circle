@@ -38,13 +38,15 @@ export const getPresignedUrls = async (uploadId: string, key: string, partNumber
     return presignedUrl;
 };
 
-export const completeMultipartUpload = async (uploadId: string, key: string, parts: CompletedPart[]) => {
+export const completeMultipartUpload = async (uploadId: string, key: string, uploadedParts: CompletedPart[]) => {
+    const sortedParts = uploadedParts.sort((a, b) => a.PartNumber! - b.PartNumber!);
+
     const completeMultipartUploadCommand = new CompleteMultipartUploadCommand({
         Bucket: process.env.USER_VIDEO_BUCKET_NAME,
         Key: key,
         UploadId: uploadId,
         MultipartUpload: {
-            Parts: parts,
+            Parts: sortedParts,
         },
     });
 
