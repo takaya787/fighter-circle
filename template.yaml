@@ -277,6 +277,11 @@ Resources:
                           - '*'
                       ExposedHeaders:
                           - ETag
+            LifecycleConfiguration:
+                Rules:
+                    - Status: 'Enabled'
+                      AbortIncompleteMultipartUpload:
+                          DaysAfterInitiation: 1
     # UserRegisterTriggerLambda:
     #     Type: AWS::Serverless::Function
     #     Properties:
@@ -346,6 +351,9 @@ Outputs:
     UserPoolIdentityProviderGoogle:
         Description: Google Congnito Provider ID
         Value: !Ref UserPoolIdentityProviderGoogle
+    UserVideoS3BucketName:
+        Description: User Video Content Bucket Name
+        Value: !Ref UserVideoS3Bucket
 
     # UserRegisterTriggerLambda:
     #     Description: User Register Trigger Lambda ID
