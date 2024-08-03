@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Upload, X } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { FileSizeValidator } from '@/lib/fileSizeValidator';
-import { sleep } from '@/lib/utlis';
 import { useVideoUpload } from '@/hooks/useVideoUpload';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { UploadButton } from '@/components/user/upload/UploadButton';
@@ -22,7 +21,7 @@ export const UserVideoUploadModal: React.FC<{ userId: string }> = ({ userId }) =
 
     const [localVideo, setLocalVideo] = useState<File | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string>('');
-    const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploadProgress, setUploadProgress] = useState(1);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const MAX_FILE_SIZE = 1000 * 1024 * 1024; // 1GB in bytes
@@ -41,7 +40,16 @@ export const UserVideoUploadModal: React.FC<{ userId: string }> = ({ userId }) =
         }
     }, []);
 
-    const { uploadVideo } = useVideoUpload(userId, setUploadProgress);
+    const { uploadVideo } = useVideoUpload(
+        userId,
+        useCallback(
+            (progress: number) => {
+                console.log('upload');
+                setUploadProgress(progress);
+            },
+            [setUploadProgress]
+        )
+    );
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -106,8 +114,10 @@ export const UserVideoUploadModal: React.FC<{ userId: string }> = ({ userId }) =
     return (
         <div className="p-4 flex items-center max-h-screen md:h-screen">
             <div className="bg-gray-100 rounded-lg shadow-md w-full max-h-screen max-w-4xl mx-auto flex flex-col justify-center min-h-[500px]">
-                <div className="md:w-1/3 p-4 border-b mx-auto ">
-                    <h1 className="text-xl font-bold text-center">頑張りを共有しよう!</h1>
+                <div className="md:w-2/3 p-4 border-b mx-auto ">
+                    <h1 className="text-xl font-bold text-center">
+                        {uploadStage === 'completed' ? 'あなたの頑張りが共有されました！' : '頑張りを共有しよう!'}
+                    </h1>
                 </div>
 
                 {/* Main Content */}

@@ -9,11 +9,13 @@ export const useVideoUpload = (userId: string, setUploadProgress: (progress: num
         const fileName = file.name;
         const fileSize = file.size;
 
+        setUploadProgress(1);
         const response = await axios.post(
             `/api/users/${userId}/videos`,
             { fileName, fileSize },
             { headers: { 'Content-Type': 'application/json' } }
         );
+        setUploadProgress(10);
 
         if (response.status !== 201) {
             throw new Error(response.data.error);

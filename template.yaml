@@ -20,18 +20,24 @@ Parameters:
 Mappings:
     EnvironmentMapping:
         dev:
+            # devではlocalのDynamoDBを利用する
             UserTableName: UserTableDev
             UserPoolName: UserPoolDev
-            VideoBucketName: fighter-circle-user-video-dev
+            InputVideoBucketName: fighter-circle-user-video-input-dev
+            OutputVideoBucketName: fighter-circle-user-video-output-dev
+            CoginitoClientDomain: fighter-circle-dev
         stage:
             UserTableName: UserTableStage
-            UserPoolName: UserPoolDev
-            VideoBucketName: fighter-circle-user-video-stage
+            UserPoolName: UserPoolStage
+            InputVideoBucketName: fighter-circle-user-video-input-stage
+            OutputVideoBucketName: fighter-circle-user-video-output-stage
+            CoginitoClientDomain: fighter-circle-stage
         prod:
             UserTableName: UserTable
             UserPoolName: UserPool
-            VideoBucketName: fighter-circle-user-video
-
+            InputVideoBucketName: fighter-circle-user-video-input
+            OutputVideoBucketName: fighter-circle-user-video-output
+            CoginitoClientDomain: fighter-circle
 # Conditions:
 #     IsProd:
 #         Fn::Equals: [!Ref Environment, prod]
@@ -39,6 +45,7 @@ Mappings:
 #         Fn::Equals: [!Ref Environment, stage]
 #     IsDev:
 #         Fn::Equals: [!Ref Environment, dev]
+
 Globals:
     Function:
         Timeout: 3
@@ -213,7 +220,7 @@ Resources:
         Type: AWS::Cognito::UserPoolDomain
         Properties:
             UserPoolId: !Ref UserPool
-            Domain: test-next-auth-sample
+            Domain: !FindInMap [EnvironmentMapping, !Ref Environment, CoginitoClientDomain]
     UserPoolAppClient:
         Type: AWS::Cognito::UserPoolClient
         Properties:
@@ -259,10 +266,10 @@ Resources:
                 email_verified: email_verified
                 preferred_username: name
                 picture: picture
-    UserVideoS3Bucket:
+    UserVideoInputS3Bucket:
         Type: AWS::S3::Bucket
         Properties:
-            BucketName: !FindInMap [EnvironmentMapping, !Ref Environment, VideoBucketName]
+            BucketName: !FindInMap [EnvironmentMapping, !Ref Environment, InputVideoBucketName]
             CorsConfiguration:
                 CorsRules:
                     - AllowedHeaders:
@@ -282,6 +289,12 @@ Resources:
                     - Status: 'Enabled'
                       AbortIncompleteMultipartUpload:
                           DaysAfterInitiation: 1
+                    - Status: 'Enabled'
+                      ExpirationInDays: 7
+    UserVideoOutputS3Bucket:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: !FindInMap [EnvironmentMapping, !Ref Environment, OutputVideoBucketName]
     # UserRegisterTriggerLambda:
     #     Type: AWS::Serverless::Function
     #     Properties:
@@ -303,6 +316,7 @@ Resources:
     #                     Trigger: PostConfirmation
     # UserTable:
     #     Type: AWS::DynamoDB::Table
+    #     Condition: !Not [!Condition IsDevEnvironment]
     #     Properties:
     #         TableName: !FindInMap [EnvironmentMapping, !Ref Environment, TableName]
     #         AttributeDefinitions:
@@ -351,9 +365,12 @@ Outputs:
     UserPoolIdentityProviderGoogle:
         Description: Google Congnito Provider ID
         Value: !Ref UserPoolIdentityProviderGoogle
-    UserVideoS3BucketName:
-        Description: User Video Content Bucket Name
-        Value: !Ref UserVideoS3Bucket
+    UserVideoInputS3BucketName:
+        Description: User Video Content Input Bucket Name
+        Value: !Ref UserVideoInputS3Bucket
+    UserVideoOutputS3BucketName:
+        Description: User Video Content Output Bucket Name through AWS Elemental MediaConvert
+        Value: !Ref UserVideoOutputS3Bucket
 
     # UserRegisterTriggerLambda:
     #     Description: User Register Trigger Lambda ID
