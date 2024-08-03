@@ -26,8 +26,13 @@ export const refreshCognitoToken = async (token: JWT): Promise<JWT> => {
         };
     } catch (error) {
         console.error('Error refreshing token:', error);
+        // tokenを期限切れにする
         return {
             ...token,
+            idToken: undefined,
+            accessToken: undefined,
+            accessTokenExpires: Date.now() - 1,
+            user: {},
         };
     }
 };

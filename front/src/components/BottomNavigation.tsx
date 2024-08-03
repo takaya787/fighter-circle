@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Home, Search, PlusSquare, User } from 'lucide-react';
 
-export const BottomNavigation: React.FC = () => {
+export const BottomNavigation: React.FC<{ userId: string }> = ({ userId }) => {
     return (
         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10">
             <ul className="flex justify-around py-2">
@@ -24,7 +24,7 @@ export const BottomNavigation: React.FC = () => {
                 </li>
                 <li>
                     <Link
-                        href="/upload"
+                        href={`/users/${userId}/upload`}
                         className="p-2 focus:outline-none focus:ring-2 focus:ring-red-500 rounded-full inline-block"
                     >
                         <PlusSquare className="w-6 h-6" />
@@ -32,7 +32,7 @@ export const BottomNavigation: React.FC = () => {
                 </li>
                 <li>
                     <Link
-                        href="/profile"
+                        href={`/users/${userId}/profile`}
                         className="p-2 focus:outline-none focus:ring-2 focus:ring-red-500 rounded-full inline-block"
                     >
                         <User className="w-6 h-6" />
