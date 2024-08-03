@@ -14,10 +14,12 @@ const s3Client = new S3Client({ region: process.env.AWS_REGION, credentials: cre
 
 const bucketFileKey = (userId: string, fileName: string) => `user_videos/${userId}/${fileName}`;
 
+const TargetBucketName = process.env.INPUT_USER_VIDEO_BUCKET_NAME;
+
 export const createMultipartUpload = async (userId: string, fileName: string) => {
     const key = bucketFileKey(userId, fileName);
     const createMultipartUploadCommand = new CreateMultipartUploadCommand({
-        Bucket: process.env.USER_VIDEO_BUCKET_NAME,
+        Bucket: TargetBucketName,
         Key: key,
     });
 
@@ -27,7 +29,7 @@ export const createMultipartUpload = async (userId: string, fileName: string) =>
 
 export const getPresignedUrls = async (uploadId: string, key: string, partNumber: number) => {
     const uploadPartCommand = new UploadPartCommand({
-        Bucket: process.env.USER_VIDEO_BUCKET_NAME,
+        Bucket: TargetBucketName,
         Key: key,
         UploadId: uploadId,
         PartNumber: partNumber,
@@ -42,7 +44,7 @@ export const completeMultipartUpload = async (uploadId: string, key: string, upl
     const sortedParts = uploadedParts.sort((a, b) => a.PartNumber! - b.PartNumber!);
 
     const completeMultipartUploadCommand = new CompleteMultipartUploadCommand({
-        Bucket: process.env.USER_VIDEO_BUCKET_NAME,
+        Bucket: TargetBucketName,
         Key: key,
         UploadId: uploadId,
         MultipartUpload: {

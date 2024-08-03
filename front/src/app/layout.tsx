@@ -29,7 +29,7 @@ export default async function RootLayout({
                     <HeaderMenu />
                     <SnackbarProvider>
                         {children}
-                        {session?.user && <BottomNavigation />}
+                        {session?.user && <BottomNavigation userId={session?.user.id!} />}
                     </SnackbarProvider>
                 </NextAuthProvider>
             </body>
