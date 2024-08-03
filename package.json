@@ -19,6 +19,7 @@
         "sam:build": "sam build && sam validate",
         "local:watch": "nodemon --ext ts --watch src --exec 'sam build'",
         "local:api": "sam local start-api",
+        "deploy:dev": "sam deploy --no-confirm-changeset --parameter-overrides GoogleClientId=$GOOGLE_CLIENT_ID GoogleClientSecret=$GOOGLE_CLIENT_SECRET Environment=dev",
         "deploy:prod": "sam deploy --no-confirm-changeset --parameter-overrides GoogleClientId=$GOOGLE_CLIENT_ID GoogleClientSecret=$GOOGLE_CLIENT_SECRET Environment=prod"
     },
     "dependencies": {
