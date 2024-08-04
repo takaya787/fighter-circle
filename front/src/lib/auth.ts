@@ -23,12 +23,12 @@ const authOptions: AuthOptions = {
     callbacks: {
         async signIn({ user, profile }) {
             // user dataを同期させる
-            await axios.post('http://localhost:3000/auth/sign_up', {
-                id: user.id,
-                email: user.email,
-                preferred_username: profile?.preferred_username ?? 'not_name',
-                email_verified: profile!.email_verified,
-            });
+            // await axios.post('http://localhost:3000/auth/sign_up', {
+            //     id: user.id,
+            //     email: user.email,
+            //     preferred_username: profile?.preferred_username ?? 'not_name',
+            //     email_verified: profile!.email_verified,
+            // });
 
             return true;
         },
