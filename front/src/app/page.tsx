@@ -1,9 +1,9 @@
 'use client';
+
+import { useSession } from 'next-auth/react';
 import React from 'react';
 import Link from 'next/link';
-import { Video, Users, Share2 } from 'lucide-react';
-import { useSession } from 'next-auth/react';
-
+import { Share2, Users, Video } from 'lucide-react';
 import { LoginButton } from '@/components/AuthenticateButton';
 
 const LISTS = [
@@ -25,7 +25,7 @@ const LISTS = [
 ];
 
 const Home = () => {
-    const { status } = useSession();
+    const { status, data } = useSession();
     return (
         <div className="bg-gray-100 min-h-screen flex flex-col">
             <main className="flex-grow p-4 space-y-6">
@@ -38,14 +38,14 @@ const Home = () => {
                 </div>
 
                 <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                    {status === 'authenticated' && (
+                    {status === 'authenticated' && data.user && (
                         <>
                             <h3 className="text-center text-xl font-semibold text-red-700 mb-4">
                                 あなたの頑張りを世界に発信しよう！
                             </h3>
                             <div className="flex justify-center">
                                 <Link
-                                    href="/upload"
+                                    href={`/users/${data.user.id}/upload`}
                                     className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded flex items-center transition duration-300"
                                 >
                                     ビデオを投稿する
