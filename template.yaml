@@ -40,14 +40,14 @@ Mappings:
             InputVideoBucketName: fighter-circle-user-video-input
             OutputVideoBucketName: fighter-circle-user-video-output
             CoginitoClientDomain: fighter-circle
-            CorsAllowOrigin: "'http://localhost:8080'"
-# Conditions:
-#     IsProd:
-#         Fn::Equals: [!Ref Environment, prod]
-#     IsStage:
-#         Fn::Equals: [!Ref Environment, stage]
-#     IsDev:
-#         Fn::Equals: [!Ref Environment, dev]
+            CorsAllowOrigin: "'https://master.dh57he0tjj5rg.amplifyapp.com'"
+Conditions:
+    IsProd:
+        Fn::Equals: [!Ref Environment, prod]
+    # IsStage:
+    #     Fn::Equals: [!Ref Environment, stage]
+    # IsDev:
+    #     Fn::Equals: [!Ref Environment, dev]
 
 Globals:
     Api:
@@ -258,7 +258,10 @@ Resources:
                 - Google
                 - COGNITO
             CallbackURLs:
-                - http://localhost:8080/api/auth/callback/cognito
+                Fn::If:
+                    - IsProd
+                    - [https://master.dh57he0tjj5rg.amplifyapp.com/api/auth/callback/cognito]
+                    - [http://localhost:8080/api/auth/callback/cognito]
     UserPoolIdentityProviderGoogle:
         Type: AWS::Cognito::UserPoolIdentityProvider
         Properties:
@@ -352,9 +355,12 @@ Resources:
     #         BillingMode: PAY_PER_REQUEST
 
 Outputs:
-    # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-    # Find out more about other implicit resources you can reference within SAM
-    # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+    StackName:
+        Description: The name of this stack
+        Value: !Ref AWS::StackName
+    Environment:
+        Description: The environment for this stack
+        Value: !Ref Environment
     ApiGateway:
         Description: API Gateway endpoint URL for Prod stage for Hello World function
         Value: !Sub 'https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/'
