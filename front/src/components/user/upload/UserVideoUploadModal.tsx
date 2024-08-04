@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Upload, X } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
+import { DynamodbFetcher } from '@/service/DynamodbFetcher';
 import { FileSizeValidator } from '@/lib/fileSizeValidator';
 import { useVideoUpload } from '@/hooks/useVideoUpload';
 import { LoadingScreen } from '@/components/LoadingScreen';
@@ -14,7 +15,7 @@ import { useSnackbar } from '@/providers/SnackbarProvider';
 // コンポーネントの型定義
 type UploadStage = 'select' | 'preview' | 'uploading' | 'completed';
 
-export const UserVideoUploadModal: React.FC<{ userId: string }> = ({ userId }) => {
+export const UserVideoUploadModal: React.FC<{ userId: string; token: string }> = ({ userId, token }) => {
     const router = useRouter();
     const addSnackbar = useSnackbar();
     const [uploadStage, setUploadStage] = useState<UploadStage>('select');
@@ -27,6 +28,8 @@ export const UserVideoUploadModal: React.FC<{ userId: string }> = ({ userId }) =
     const MAX_FILE_SIZE = 1000 * 1024 * 1024; // 1GB in bytes
 
     const validator = new FileSizeValidator(MAX_FILE_SIZE);
+
+    const dynamodbFetcher = new DynamodbFetcher(token);
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
         setErrorMessage('');
@@ -44,7 +47,6 @@ export const UserVideoUploadModal: React.FC<{ userId: string }> = ({ userId }) =
         userId,
         useCallback(
             (progress: number) => {
-                console.log('upload');
                 setUploadProgress(progress);
             },
             [setUploadProgress]
@@ -84,7 +86,9 @@ export const UserVideoUploadModal: React.FC<{ userId: string }> = ({ userId }) =
         setUploadStage('uploading');
 
         try {
-            await uploadVideo(localVideo);
+            const { key, format } = await uploadVideo(localVideo);
+
+            await dynamodbFetcher.post(`/users/${userId}/user_videos`, { key: key, format: format });
             addSnackbar({
                 key: 'Upload Complete',
                 text: `Upload Completed! file_name: ${localVideo.name}`,

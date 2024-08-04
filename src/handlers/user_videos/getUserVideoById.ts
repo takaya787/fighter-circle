@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { UserRepository, User } from '@/lib/entity/user/user';
 import { UserVideoRepository, UserVideo } from '@/lib/entity/user/userVideo';
+import { generateResponse } from '@/lib/response';
 
 /**
  * A simple example includes a HTTP post method to add one item to a DynamoDB table.
@@ -33,23 +34,22 @@ export const getUserVideoByIdHandler = async (event: APIGatewayProxyEvent): Prom
         // body: JSON.stringify({
         //     error : err
         // }),
-        const response = {
-            statusCode: 500,
-            body: JSON.stringify({
+
+        return generateResponse(
+            500,
+            JSON.stringify({
                 message: 'Error Happened',
             }),
-        };
-
-        return response;
+        );
     }
 
-    const response = {
-        statusCode: 200,
-        body: JSON.stringify({
+    const response = generateResponse(
+        200,
+        JSON.stringify({
             user: user,
             video: video,
         }),
-    };
+    );
 
     // All log statements are written to CloudWatch
     console.info(`response from: ${event.path} statusCode: ${response.statusCode} body: ${response.body}`);

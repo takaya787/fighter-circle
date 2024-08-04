@@ -16,7 +16,7 @@
         "compile": "tsc",
         "test": "npm run compile && npm run unit",
         "seed": "ts-node -r tsconfig-paths/register --compiler-options {\\\"module\\\":\\\"CommonJS\\\"} ./src/lib/seeds.ts",
-        "sam:build": "sam build && sam validate",
+        "sam:build": "sam build && sam validate --lint",
         "local:watch": "nodemon --ext ts --watch src --exec 'sam build'",
         "local:api": "sam local start-api",
         "deploy:dev": "sam deploy --no-confirm-changeset",

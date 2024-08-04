@@ -2,7 +2,7 @@ import attribute from 'dynamode/decorators';
 import { UserTable, UserTableManager, UserTableProps, UserTablePrimaryKey } from '@/lib/table/userTable';
 
 type UserVideoProps = UserTableProps & {
-    videoPath: string;
+    s3Key: string;
     format: FormatString;
     viewCount: number;
 };
@@ -17,7 +17,7 @@ export class UserVideo extends UserTable {
     userId: string;
 
     @attribute.string()
-    videoPath: string;
+    s3Key: string;
 
     @attribute.string()
     format: FormatString;
@@ -29,7 +29,7 @@ export class UserVideo extends UserTable {
         super(props);
 
         this.userId = props.pk;
-        this.videoPath = props.videoPath;
+        this.s3Key = props.s3Key;
         this.format = props.format;
         this.viewCount = props.viewCount;
     }

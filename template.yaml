@@ -26,18 +26,21 @@ Mappings:
             InputVideoBucketName: fighter-circle-user-video-input-dev
             OutputVideoBucketName: fighter-circle-user-video-output-dev
             CoginitoClientDomain: fighter-circle-dev
+            CorsAllowOrigin: "'http://localhost:8080'"
         stage:
             UserTableName: UserTableStage
             UserPoolName: UserPoolStage
             InputVideoBucketName: fighter-circle-user-video-input-stage
             OutputVideoBucketName: fighter-circle-user-video-output-stage
             CoginitoClientDomain: fighter-circle-stage
+            CorsAllowOrigin: "'http://localhost:8080'"
         prod:
             UserTableName: UserTable
             UserPoolName: UserPool
             InputVideoBucketName: fighter-circle-user-video-input
             OutputVideoBucketName: fighter-circle-user-video-output
             CoginitoClientDomain: fighter-circle
+            CorsAllowOrigin: "'http://localhost:8080'"
 # Conditions:
 #     IsProd:
 #         Fn::Equals: [!Ref Environment, prod]
@@ -47,6 +50,12 @@ Mappings:
 #         Fn::Equals: [!Ref Environment, dev]
 
 Globals:
+    Api:
+        Cors:
+            AllowMethods: "'GET,POST,OPTIONS,PUT,DELETE'"
+            AllowHeaders: "'*'"
+            AllowOrigin: !FindInMap [EnvironmentMapping, !Ref Environment, CorsAllowOrigin]
+            AllowCredentials: true
     Function:
         Timeout: 3
         MemorySize: 128
@@ -63,7 +72,6 @@ Resources:
         Type: AWS::Serverless::Api
         Properties:
             StageName: !Ref Environment
-            Cors: "'*'"
             Auth:
                 DefaultAuthorizer: CognitoAuthorizer
                 Authorizers:

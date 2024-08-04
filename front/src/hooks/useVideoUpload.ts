@@ -5,7 +5,7 @@ import { sleep } from '@/lib/utlis';
 const PART_SIZE = 10 * 1024 * 1024; // 10 MB
 
 export const useVideoUpload = (userId: string, setUploadProgress: (progress: number) => void) => {
-    const uploadVideo = async (file: File) => {
+    const uploadVideo = async (file: File): Promise<{ key: string; format: string }> => {
         const fileName = file.name;
         const fileSize = file.size;
 
@@ -24,6 +24,10 @@ export const useVideoUpload = (userId: string, setUploadProgress: (progress: num
         const { key, uploadId, presignedUrls } = response.data;
         const uploadedCompletedParts = await uploadParts(file, presignedUrls);
         await completeUpload(uploadId, key, uploadedCompletedParts);
+
+        const match = fileName.match(/\.([a-zA-Z0-9]+)$/) ?? ['mp4'];
+
+        return { key: key, format: match[0] };
     };
 
     const uploadParts = async (file: File, presignedUrls: string[]) => {
