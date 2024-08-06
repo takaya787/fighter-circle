@@ -2,6 +2,24 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: sam-apigateway-authorizer
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+# Output:確認command
+# aws cloudformation describe-stacks --stack-name fighter-circle-dev --query "Stacks[0].Outputs"
+
+Metadata:
+    AWS::CloudFormation::Interface:
+        ParameterGroups:
+            - Label:
+                  default: Common setting
+              Parameters:
+                  - GoogleClientId
+                  - GoogleClientSecret
+                  - Environment
+                  - SystemName
+            - Label:
+                  default: MediaConvert setting
+              Parameters:
+                  - EndPointUrl
+
 Parameters:
     GoogleClientId:
         Type: String
@@ -17,28 +35,28 @@ Parameters:
             - stage
             - prod
         Description: The environment to deploy (dev, stage or prod)
+    SystemName:
+        Type: String
+        Default: fighter-circle
+    EndPointUrl:
+        Type: String
+        Default: https://mpazqbhuc.mediaconvert.ap-northeast-1.amazonaws.com
 Mappings:
     EnvironmentMapping:
         dev:
             # devではlocalのDynamoDBを利用する
             UserTableName: UserTableDev
             UserPoolName: UserPoolDev
-            InputVideoBucketName: fighter-circle-user-video-input-dev
-            OutputVideoBucketName: fighter-circle-user-video-output-dev
             CoginitoClientDomain: fighter-circle-dev
             CorsAllowOrigin: "'http://localhost:8080'"
         stage:
             UserTableName: UserTableStage
             UserPoolName: UserPoolStage
-            InputVideoBucketName: fighter-circle-user-video-input-stage
-            OutputVideoBucketName: fighter-circle-user-video-output-stage
             CoginitoClientDomain: fighter-circle-stage
             CorsAllowOrigin: "'http://localhost:8080'"
         prod:
             UserTableName: UserTable
             UserPoolName: UserPool
-            InputVideoBucketName: fighter-circle-user-video-input
-            OutputVideoBucketName: fighter-circle-user-video-output
             CoginitoClientDomain: fighter-circle
             CorsAllowOrigin: "'https://master.dh57he0tjj5rg.amplifyapp.com'"
 Conditions:
@@ -78,6 +96,7 @@ Resources:
                     CognitoAuthorizer:
                         UserPoolArn: !GetAtt UserPool.Arn
     # 動作確認用で残す
+    # cloud watchのlogを追加する
     HelloWorldFunction:
         Type: AWS::Serverless::Function
         Metadata: &CommonFunctionMetadata
@@ -280,7 +299,7 @@ Resources:
     UserVideoInputS3Bucket:
         Type: AWS::S3::Bucket
         Properties:
-            BucketName: !FindInMap [EnvironmentMapping, !Ref Environment, InputVideoBucketName]
+            BucketName: !Sub ${SystemName}-user-video-input-${Environment}
             CorsConfiguration:
                 CorsRules:
                     - AllowedHeaders:
@@ -305,26 +324,8 @@ Resources:
     UserVideoOutputS3Bucket:
         Type: AWS::S3::Bucket
         Properties:
-            BucketName: !FindInMap [EnvironmentMapping, !Ref Environment, OutputVideoBucketName]
-    # UserRegisterTriggerLambda:
-    #     Type: AWS::Serverless::Function
-    #     Properties:
-    #         CodeUri: src/triggers/user_register
-    #         Handler: index.lambdaHandler
-    #         Runtime: nodejs20.x
-    #         Policies:
-    #             - DynamoDBCrudPolicy:
-    #                   TableName: !Ref UserTable
+            BucketName: !Sub ${SystemName}-user-video-output-${Environment}
 
-    #         Environment:
-    #             Variables:
-    #                 TABLE_NAME: !FindInMap [EnvironmentMapping, !Ref Environment, TableName]
-    #         Events:
-    #             UserRegister:
-    #                 Type: Cognito
-    #                 Properties:
-    #                     UserPool: !Ref UserPool
-    #                     Trigger: PostConfirmation
     # UserTable:
     #     Type: AWS::DynamoDB::Table
     #     Condition: !Not [!Condition IsDevEnvironment]
@@ -354,6 +355,118 @@ Resources:
     #                   ProjectionType: ALL
     #         BillingMode: PAY_PER_REQUEST
 
+    # ------------------------------------------------------------#
+    # Media Convert Lambda
+    # ------------------------------------------------------------#
+    MediaConvertTriggerLambda:
+        Type: AWS::Serverless::Function
+        Metadata:
+            <<: *CommonFunctionMetadata
+        Properties:
+            FunctionName: !Sub ${SystemName}-start-media-convert-job-${Environment}
+            Description: Trigger an Elemental MediaConvert job
+            CodeUri: src/jobs/start_media_convert
+            Handler: app.lambdaHandler
+            Runtime: nodejs20.x
+            Architectures:
+                - x86_64
+            Timeout: 300
+            Role: !GetAtt MediaConvertTriggerLambdaRole.Arn
+            Environment:
+                Variables:
+                    ENDPOINT_URL: !Ref EndPointUrl
+                    OUTPUT_BUCKET: !Ref UserVideoOutputS3Bucket
+                    MEDIA_CONVERT_JOB_TEMPLATE_ARN: !GetAtt MediaConvertJobTemplate.Arn
+                    MEDIA_CONVERT_ROLE_ARN: !GetAtt MediaConvertServiceRole.Arn
+                    MEDIA_CONVERT_QUE: !Sub arn:aws:mediaconvert:ap-northeast-1:${AWS::AccountId}:queues/${SystemName}-${Environment}
+            Events:
+                S3Event:
+                    Type: S3
+                    Properties:
+                        Bucket: !Ref UserVideoInputS3Bucket
+                        Events: s3:ObjectCreated:*
+    # ------------------------------------------------------------#
+    # IAM
+    # ------------------------------------------------------------#
+    MediaConvertTriggerLambdaRole:
+        Type: AWS::IAM::Role
+        Properties:
+            RoleName: !Sub ${SystemName}-trigger-lambda-role-${Environment}
+            AssumeRolePolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service:
+                              - lambda.amazonaws.com
+                      Action:
+                          - sts:AssumeRole
+            Path: /
+            ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+                - !Ref MediaConvertJobExecutePolicy
+    MediaConvertJobExecutePolicy:
+        Type: AWS::IAM::ManagedPolicy
+        Properties:
+            ManagedPolicyName: !Sub ${SystemName}-media-convert-execute-policy-${Environment}
+            Path: /
+            PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                    - Effect: Allow
+                      Action:
+                          - iam:PassRole
+                          - mediaconvert:CreateJob
+                      Resource: '*'
+    MediaConvertServiceRole:
+        Type: AWS::IAM::Role
+        Properties:
+            RoleName: !Sub ${SystemName}-media-convert-role-${Environment}
+            AssumeRolePolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service:
+                              - mediaconvert.amazonaws.com
+                      Action:
+                          - sts:AssumeRole
+            Path: /service-role/
+            ManagedPolicyArns:
+                - !Ref MediaConvertJobPolicy
+    MediaConvertJobPolicy:
+        Type: AWS::IAM::ManagedPolicy
+        Properties:
+            ManagedPolicyName: !Sub ${SystemName}-media-convert-policy-${Environment}
+            Path: /
+            PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                    - Effect: Allow
+                      Resource:
+                          - !Sub arn:aws:s3:::${SystemName}-user-video-input-${Environment}/*
+                      Action:
+                          - s3:Get*
+                          - s3:List*
+                    - Effect: Allow
+                      Resource:
+                          - !Sub arn:aws:s3:::${SystemName}-user-video-output-${Environment}/*
+                      Action:
+                          - s3:Put*
+    # ------------------------------------------------------------#
+    # MediaConvert
+    # ------------------------------------------------------------#
+    MediaConvertJobTemplate:
+        Type: AWS::MediaConvert::JobTemplate
+        Properties:
+            Name: !Sub ${SystemName}-media-convert-job-template-${Environment}
+            Category: MP4
+            Description: Job template for converting uploaded video to mp4
+            SettingsJson:
+                Fn::Transform:
+                    Name: AWS::Include
+                    Parameters:
+                        Location: src/jobs/start_media_convert/job_settings.json
 Outputs:
     StackName:
         Description: The name of this stack
@@ -385,6 +498,9 @@ Outputs:
     UserVideoOutputS3BucketName:
         Description: User Video Content Output Bucket Name through AWS Elemental MediaConvert
         Value: !Ref UserVideoOutputS3Bucket
+    # MediaConvertTriggerLambda:
+    #     Description: Media Convert Trigger Lambda Function
+    #     value: !Ref MediaConvertTriggerLambda
 
     # UserRegisterTriggerLambda:
     #     Description: User Register Trigger Lambda ID

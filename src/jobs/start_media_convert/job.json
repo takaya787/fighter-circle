@@ -1,0 +1,24 @@
+{
+    "OutputGroups": [
+        {
+            "Name": "File Group",
+            "OutputGroupSettings": {
+                "Type": "FILE_GROUP_SETTINGS",
+                "FileGroupSettings": {
+                    "Destination": ""
+                }
+            }
+        }
+    ],
+    "Inputs": [
+        {
+            "AudioSelectors": {
+                "Audio Selector 1": {
+                    "DefaultSelection": "DEFAULT"
+                }
+            },
+            "FileInput": "",
+            "TimecodeSource": "ZEROBASED"
+        }
+    ]
+}

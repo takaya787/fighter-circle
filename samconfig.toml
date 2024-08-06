@@ -16,7 +16,7 @@ resolve_s3 = true
 s3_prefix = "fighter-circle-dev"
 region = "ap-northeast-1"
 confirm_changeset = true
-capabilities = "CAPABILITY_IAM"
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
 disable_rollback = true
 parameter_overrides = "GoogleClientId=\"785409465-vhtkkf70dupl4qnr5jvgo1leoebhr5gi.apps.googleusercontent.com\" GoogleClientSecret=\"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\" Environment=\"dev\""
 image_repositories = []

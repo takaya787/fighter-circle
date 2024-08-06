@@ -1,0 +1,51 @@
+import { S3Event, Context } from 'aws-lambda';
+import * as AWS from 'aws-sdk';
+
+// https://dev.classmethod.jp/articles/mediaconvert-s3-auto-convert-cfn/
+// 上記の記事をtsに変換
+
+const endpointUrl = process.env.ENDPOINT_URL!;
+const outputBucket = process.env.OUTPUT_BUCKET!;
+const mediaConvertJobTemplateArn = process.env.MEDIA_CONVERT_JOB_TEMPLATE_ARN!;
+const mediaConvertRoleArn = process.env.MEDIA_CONVERT_ROLE_ARN!;
+const mediaConvertQue = process.env.MEDIA_CONVERT_QUE!;
+
+const mediaconvert = new AWS.MediaConvert({ region: 'ap-northeast-1', endpoint: endpointUrl });
+const s3 = new AWS.S3();
+
+export const lambdaHandler = async (event: S3Event, context: Context): Promise<void> => {
+    const s3InputBucket = event.Records[0].s3.bucket.name;
+    const s3Key = event.Records[0].s3.object.key;
+    const inputFile = `s3://${s3InputBucket}/${s3Key}`;
+    const outputFile = `s3://${outputBucket}/`;
+
+    console.debug('EVENT: ' + JSON.stringify(event));
+    console.log('EVENT: ' + JSON.stringify(event));
+
+    try {
+        const jobObject = await s3.getObject({ Bucket: s3InputBucket, Key: 'job.json' }).promise();
+        console.log('jobObject: ' + JSON.stringify(jobObject));
+
+        const jobSettings = JSON.parse(jobObject.Body!.toString('utf-8'));
+
+        jobSettings.OutputGroups[0].OutputGroupSettings.HlsGroupSettings.Destination = outputFile;
+        jobSettings.Inputs[0].FileInput = inputFile;
+
+        const response = await mediaconvert
+            .createJob({
+                JobTemplate: mediaConvertJobTemplateArn,
+                Queue: mediaConvertQue,
+                Role: mediaConvertRoleArn,
+                Settings: jobSettings,
+            })
+            .promise();
+
+        console.log('Job created:', response);
+    } catch (error) {
+        console.error(error);
+        console.error(
+            `Error getting object ${s3Key} from bucket ${s3InputBucket}. Make sure they exist and your bucket is in the same region as this function.`,
+        );
+        throw error;
+    }
+};
