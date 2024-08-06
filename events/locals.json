@@ -1,0 +1,9 @@
+{
+    "MediaConvertTriggerLambda": {
+        "ENDPOINT_URL": "https://mpazqbhuc.mediaconvert.ap-northeast-1.amazonaws.com",
+        "OUTPUT_BUCKET": "fighter-circle-user-video-output-dev",
+        "MEDIA_CONVERT_JOB_TEMPLATE_ARN": "arn:aws:mediaconvert:ap-northeast-1:196192500524:jobTemplates/fighter-circle-media-convert-job-template-dev",
+        "MEDIA_CONVERT_ROLE_ARN": "arn:aws:iam::196192500524:role/service-role/fighter-circle-media-convert-role-dev",
+        "MEDIA_CONVERT_QUE": "arn:aws:mediaconvert:ap-northeast-1:196192500524:queues/fight-circle-dev"
+    }
+}

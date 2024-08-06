@@ -370,7 +370,8 @@ Resources:
             Runtime: nodejs20.x
             Architectures:
                 - x86_64
-            Timeout: 300
+            Timeout: 180
+            MemorySize: 512
             Role: !GetAtt MediaConvertTriggerLambdaRole.Arn
             Environment:
                 Variables:
