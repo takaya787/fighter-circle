@@ -325,7 +325,64 @@ Resources:
         Type: AWS::S3::Bucket
         Properties:
             BucketName: !Sub ${SystemName}-user-video-output-${Environment}
-
+            PublicAccessBlockConfiguration:
+                BlockPublicAcls: True
+                BlockPublicPolicy: True
+                IgnorePublicAcls: True
+                RestrictPublicBuckets: True
+    UserVideoOutputS3BucketPolicy:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+            PolicyDocument:
+                Id: UserVideoOutputS3BucketPolicy
+                Version: '2012-10-17'
+                Statement:
+                    - Sid: CloudFrontDistributionAccess
+                      Effect: Allow
+                      Principal:
+                          Service: cloudfront.amazonaws.com
+                      Action: 's3:GetObject'
+                      Resource: !Sub ${UserVideoOutputS3Bucket.Arn}/*
+                      Condition:
+                          StringEquals:
+                              AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}
+            Bucket: !Ref UserVideoOutputS3Bucket
+    CloudFrontDistribution:
+        Type: AWS::CloudFront::Distribution
+        Properties:
+            DistributionConfig:
+                Origins:
+                    - Id: S3Origin
+                      DomainName: !GetAtt UserVideoOutputS3Bucket.DomainName
+                      OriginAccessControlId: !GetAtt CloudFrontOriginAccessControll.Id
+                      S3OriginConfig:
+                          OriginAccessIdentity: ''
+                Enabled: true
+                DefaultCacheBehavior:
+                    TargetOriginId: S3Origin
+                    ViewerProtocolPolicy: redirect-to-https
+                    AllowedMethods:
+                        - GET
+                        - HEAD
+                    CachedMethods:
+                        - GET
+                        - HEAD
+                    ForwardedValues:
+                        QueryString: false
+                        Cookies:
+                            Forward: none
+                    Compress: true
+                ViewerCertificate:
+                    CloudFrontDefaultCertificate: true
+    CloudFrontOriginAccessControll:
+        Type: AWS::CloudFront::OriginAccessControl
+        Properties:
+            OriginAccessControlConfig:
+                Description: Access Control
+                Name: OAC
+                OriginAccessControlOriginType: s3
+                SigningBehavior: always
+                SigningProtocol: sigv4
     # UserTable:
     #     Type: AWS::DynamoDB::Table
     #     Condition: !Not [!Condition IsDevEnvironment]
@@ -416,6 +473,12 @@ Resources:
                 Statement:
                     - Effect: Allow
                       Action:
+                          - s3:Get*
+                          - s3:List*
+                      Resource:
+                          - !Sub arn:aws:s3:::${SystemName}-user-video-input-${Environment}/*
+                    - Effect: Allow
+                      Action:
                           - iam:PassRole
                           - mediaconvert:CreateJob
                       Resource: '*'
@@ -499,9 +562,12 @@ Outputs:
     UserVideoOutputS3BucketName:
         Description: User Video Content Output Bucket Name through AWS Elemental MediaConvert
         Value: !Ref UserVideoOutputS3Bucket
-    # MediaConvertTriggerLambda:
-    #     Description: Media Convert Trigger Lambda Function
-    #     value: !Ref MediaConvertTriggerLambda
+    CloudFrontUrl:
+        Description: Access url for the CloudFront distribution
+        Value: !Sub 'https://${CloudFrontDistribution.DomainName}'
+    MediaConvertTriggerLambdaName:
+        Description: Media Convert Trigger Lambda Function Event by S3
+        Value: !Ref MediaConvertTriggerLambda
 
     # UserRegisterTriggerLambda:
     #     Description: User Register Trigger Lambda ID

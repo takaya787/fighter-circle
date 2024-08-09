@@ -13,5 +13,6 @@ declare namespace NodeJS {
         readonly AWS_ACCESS_KEY_ID: string;
         readonly AWS_SECRET_ACCESS_KEY: string;
         readonly USER_VIDEO_BUCKET_NAME: string;
+        readonly CLOUD_FRONT_URL: string;
     }
 }
