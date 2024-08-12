@@ -3,6 +3,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { UserVideoRepository, UserVideo } from '@/lib/entity/user/userVideo';
 import { User, UserRepository } from '@/lib/entity/user/user';
 import { generateResponse } from '@/lib/response';
+import { convertKeyExtention } from '@/lib/extentionFormatter';
 
 /**
  * A simple example includes a HTTP get method to get all items from a DynamoDB table.
@@ -28,7 +29,9 @@ export const getUserVideosHandler = async (event: APIGatewayProxyEvent): Promise
                 .attribute('dynamodeEntity')
                 .eq(UserVideo.name)
                 .run()
-        ).items;
+        ).items.map((v) => {
+            return { ...v, s3path: convertKeyExtention(v.s3Key) };
+        });
     } catch (err) {
         console.log('Error', err);
         throw err;

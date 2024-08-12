@@ -9,8 +9,8 @@
             "Outputs": [
                 {
                     "VideoDescription": {
-                        "Width": 1280,
-                        "Height": 720,
+                        "Width": 720,
+                        "Height": 1280,
                         "CodecSettings": {
                             "Codec": "H_264",
                             "H264Settings": {

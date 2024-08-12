@@ -1,5 +1,6 @@
 import { S3Event, Context } from 'aws-lambda';
 import { S3, MediaConvert } from 'aws-sdk';
+import { removeKeyExtention } from '@/lib/extentionFormatter';
 
 // https://dev.classmethod.jp/articles/mediaconvert-s3-auto-convert-cfn/
 // 上記の記事をtsに変換
@@ -20,19 +21,19 @@ export const lambdaHandler = async (event: S3Event, context: Context): Promise<v
     const s3InputBucket = event.Records[0].s3.bucket.name;
     const s3Key = event.Records[0].s3.object.key;
     const inputFile = `s3://${s3InputBucket}/${s3Key}`;
-    const outputFile = `s3://${outputBucket}/`;
+
+    const outputFile = `s3://${outputBucket}/${removeKeyExtention(s3Key)}`;
 
     console.log('Env: ' + JSON.stringify(process.env));
 
     try {
         const jobObject = await s3.getObject({ Bucket: s3InputBucket, Key: 'job.json' }).promise();
-        console.log('---------------------------');
-
         const jobSettings = JSON.parse(jobObject.Body!.toString('utf-8'));
-        console.log('jobSettings: ' + JSON.stringify(jobSettings));
 
         jobSettings.OutputGroups[0].OutputGroupSettings.FileGroupSettings.Destination = outputFile;
         jobSettings.Inputs[0].FileInput = inputFile;
+
+        console.log({ jobSettings });
 
         const response = await mediaconvert
             .createJob({

@@ -27,7 +27,7 @@
                     "arn": "arn:aws:s3:::fighter-circle-user-video-input-dev"
                 },
                 "object": {
-                    "key": "IMG_1177.mov",
+                    "key": "user_videos/1764cae8-20e1-7098-4610-e6992c4210eb/IMG_0026.mov",
                     "size": 1024,
                     "eTag": "0123456789abcdef0123456789abcdef",
                     "sequencer": "0A1B2C3D4E5F678901"
