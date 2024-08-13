@@ -196,6 +196,12 @@ Resources:
             Architectures:
                 - x86_64
             Events:
+                UserVideoFeed:
+                    Type: Api
+                    Properties:
+                        RestApiId: !Ref ApiGateway
+                        Path: /user_videos
+                        Method: get
                 UserVideoRead:
                     Type: Api
                     Properties:

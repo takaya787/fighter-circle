@@ -12,6 +12,7 @@ import {
     getUserVideoByIdHandler,
     getUserVideosHandler,
     incrementUserVideoCountHandler,
+    getUserVideoFeedHandler,
 } from '@/handlers/user_videos';
 import { signUpHandler } from '@/handlers/auth/signUp';
 
@@ -27,6 +28,11 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
         path: string;
         handler: (event: APIGatewayProxyEvent) => Promise<APIGatewayProxyResult>;
     }> = [
+        {
+            method: 'GET',
+            path: '/user_videos',
+            handler: getUserVideoFeedHandler,
+        },
         {
             method: 'PUT',
             path: '/users/:user_id/user_videos/:user_video_id/increment',

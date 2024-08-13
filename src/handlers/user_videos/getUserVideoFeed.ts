@@ -1,29 +1,33 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 import { UserVideoRepository, UserVideo } from '@/lib/entity/user/userVideo';
-import { User, UserRepository } from '@/lib/entity/user/user';
 import { generateResponse } from '@/lib/response';
 import { convertKeyExtention } from '@/lib/extentionFormatter';
 
 /**
  * A simple example includes a HTTP get method to get all items from a DynamoDB table.
  */
-export const getUserVideosHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const getUserVideoFeedHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     if (event.httpMethod !== 'GET') {
         throw new Error(`getAllItems only accept GET method, you tried: ${event.httpMethod}`);
     }
 
-    const userId = event.pathParameters!.user_id as string;
+    // const startKey = event.pathParameters!.start_key;
 
-    let user: User;
     let videos: UserVideo[] = [];
+    let last_key: any;
 
     try {
-        user = await UserRepository.get(User.getPrimaryKey(userId));
+        const res = await UserVideoRepository.query()
+            .partitionKey('dynamodeEntity')
+            .eq(UserVideo.name)
+            .sort('ascending')
+            .run();
 
-        videos = (
-            await UserVideoRepository.query().partitionKey('pk').eq(userId).sortKey('sk').beginsWith('').run()
-        ).items.map((v) => {
+        console.debug({ res });
+
+        last_key = res.lastKey;
+        videos = res.items.map((v) => {
             return { ...v, s3path: convertKeyExtention(v.s3Key) };
         });
     } catch (err) {
@@ -31,5 +35,5 @@ export const getUserVideosHandler = async (event: APIGatewayProxyEvent): Promise
         throw err;
     }
 
-    return generateResponse(200, JSON.stringify({ user: user, videos: videos, total_count: videos.length }));
+    return generateResponse(200, JSON.stringify({ videos: videos, last_key: last_key }));
 };
