@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: sam-apigateway-authorizer
+Description: fighter-circle aws sam template
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 # Output:確認command
 # aws cloudformation describe-stacks --stack-name fighter-circle-dev --query "Stacks[0].Outputs"
@@ -111,6 +111,9 @@ Resources:
             Runtime: nodejs20.x
             Architectures:
                 - x86_64
+            Policies:
+                - DynamoDBCrudPolicy:
+                      TableName: !FindInMap [EnvironmentMapping, !Ref Environment, UserTableName]
             Events:
                 Hello:
                     Type: Api
@@ -128,9 +131,9 @@ Resources:
             Runtime: nodejs20.x
             Architectures:
                 - x86_64
-            # Policies:
-            #     DynamoDBCrudPolicy:
-            #         TableName: !Ref SampleTable
+            Policies:
+                - DynamoDBCrudPolicy:
+                      TableName: !FindInMap [EnvironmentMapping, !Ref Environment, UserTableName]
             Events:
                 ItemCreate:
                     Type: Api
@@ -173,6 +176,9 @@ Resources:
         Metadata:
             <<: *CommonFunctionMetadata
         Properties:
+            Policies:
+                - DynamoDBCrudPolicy:
+                      TableName: !FindInMap [EnvironmentMapping, !Ref Environment, UserTableName]
             CodeUri: src/handlers
             Handler: index.lambdaHandler
             Runtime: nodejs20.x
@@ -190,6 +196,9 @@ Resources:
         Metadata:
             <<: *CommonFunctionMetadata
         Properties:
+            Policies:
+                - DynamoDBCrudPolicy:
+                      TableName: !FindInMap [EnvironmentMapping, !Ref Environment, UserTableName]
             CodeUri: src/handlers
             Handler: index.lambdaHandler
             Runtime: nodejs20.x
@@ -385,38 +394,54 @@ Resources:
         Properties:
             OriginAccessControlConfig:
                 Description: Access Control
-                Name: OAC
+                Name: !Sub OAC-${SystemName}-${Environment}
                 OriginAccessControlOriginType: s3
                 SigningBehavior: always
                 SigningProtocol: sigv4
-    # UserTable:
-    #     Type: AWS::DynamoDB::Table
-    #     Condition: !Not [!Condition IsDevEnvironment]
-    #     Properties:
-    #         TableName: !FindInMap [EnvironmentMapping, !Ref Environment, TableName]
-    #         AttributeDefinitions:
-    #             - AttributeName: pk
-    #               AttributeType: S
-    #             - AttributeName: sk
-    #               AttributeType: S
-    #             - AttributeName: createdAt
-    #               AttributeType: S
-    #             # Define other attributes here as needed
-    #         KeySchema:
-    #             - AttributeName: pk
-    #               KeyType: HASH
-    #             - AttributeName: sk
-    #               KeyType: RANGE
-    #         LocalSecondaryIndexes:
-    #             - IndexName: CreatedAtIndex
-    #               KeySchema:
-    #                   - AttributeName: pk
-    #                     KeyType: HASH
-    #                   - AttributeName: createdAt
-    #                     KeyType: RANGE
-    #               Projection:
-    #                   ProjectionType: ALL
-    #         BillingMode: PAY_PER_REQUEST
+
+    # ------------------------------------------------------------#
+    # Dynamo DB
+    # ------------------------------------------------------------#
+    UserTable:
+        Type: AWS::DynamoDB::Table
+        Condition: IsProd
+        Properties:
+            TableName: !FindInMap [EnvironmentMapping, !Ref Environment, UserTableName]
+            AttributeDefinitions:
+                - AttributeName: pk
+                  AttributeType: S
+                - AttributeName: sk
+                  AttributeType: S
+                - AttributeName: dynamodeEntity
+                  AttributeType: S
+                - AttributeName: gsi_sk_1
+                  AttributeType: S
+            KeySchema:
+                - AttributeName: pk
+                  KeyType: HASH
+                - AttributeName: sk
+                  KeyType: RANGE
+            LocalSecondaryIndexes:
+                - IndexName: local-created-index
+                  KeySchema:
+                      - AttributeName: pk
+                        KeyType: HASH
+                      - AttributeName: gsi_sk_1
+                        KeyType: RANGE
+                  Projection:
+                      ProjectionType: ALL
+            GlobalSecondaryIndexes:
+                - IndexName: dynamode-index
+                  KeySchema:
+                      - AttributeName: dynamodeEntity
+                        KeyType: HASH
+                      - AttributeName: gsi_sk_1
+                        KeyType: RANGE
+                  Projection:
+                      ProjectionType: ALL
+            BillingMode: PAY_PER_REQUEST
+            # DeletionProtectionEnabled: !If [IsProd, true, false]
+            DeletionProtectionEnabled: false
 
     # ------------------------------------------------------------#
     # Media Convert Lambda
@@ -450,7 +475,7 @@ Resources:
                         Bucket: !Ref UserVideoInputS3Bucket
                         Events: s3:ObjectCreated:*
     # ------------------------------------------------------------#
-    # IAM
+    # IAM For MediaConvert
     # ------------------------------------------------------------#
     MediaConvertTriggerLambdaRole:
         Type: AWS::IAM::Role
@@ -568,6 +593,10 @@ Outputs:
     UserVideoOutputS3BucketName:
         Description: User Video Content Output Bucket Name through AWS Elemental MediaConvert
         Value: !Ref UserVideoOutputS3Bucket
+    UserTableName:
+        Condition: IsProd
+        Description: User Table Name only in production
+        Value: !Ref UserTable
     CloudFrontUrl:
         Description: Access url for the CloudFront distribution
         Value: !Sub 'https://${CloudFrontDistribution.DomainName}'
