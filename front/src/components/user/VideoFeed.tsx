@@ -11,7 +11,7 @@ export const VideoFeed = async ({ idToken, path }: VideoFeedProps) => {
     const videos = await getFetcher(path, idToken).then((data) => {
         console.debug(data);
 
-        return data['videos'];
+        return data ? data['videos'] : [];
     });
 
     return (
@@ -19,7 +19,9 @@ export const VideoFeed = async ({ idToken, path }: VideoFeedProps) => {
             <section className="w-full my-4">
                 <h2 className="text-xl sm:text-2xl font-semibold mb-4">Featured Video</h2>
 
-                <VideoScreenWithSkeleton s3Path={fetchCloudFrontUrl(videos[0].s3path)} forSkeleton={false} />
+                {videos.length > 0 && (
+                    <VideoScreenWithSkeleton s3Path={fetchCloudFrontUrl(videos[0].s3path)} forSkeleton={false} />
+                )}
             </section>
 
             <section className="w-full">

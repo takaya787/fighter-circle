@@ -64,8 +64,8 @@ Conditions:
         Fn::Equals: [!Ref Environment, prod]
     # IsStage:
     #     Fn::Equals: [!Ref Environment, stage]
-    # IsDev:
-    #     Fn::Equals: [!Ref Environment, dev]
+    IsDev:
+        Fn::Equals: [!Ref Environment, dev]
 
 Globals:
     Api:
@@ -173,6 +173,7 @@ Resources:
                         Method: get
     AuthFunction:
         Type: AWS::Serverless::Function
+        Condition: IsDev
         Metadata:
             <<: *CommonFunctionMetadata
         Properties:
@@ -572,9 +573,6 @@ Outputs:
     ApiGateway:
         Description: API Gateway endpoint URL for Prod stage for Hello World function
         Value: !Sub 'https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/'
-    UserFunction:
-        Description: Hello World Lambda Function ARN
-        Value: !GetAtt UserFunction.Arn
     UserPoolId:
         Description: UserPool ID
         Value: !Ref UserPool
@@ -582,11 +580,9 @@ Outputs:
         Description: App Client ID
         Value: !Ref UserPoolAppClient
     UserPoolAppClientSecret:
+        Condition: IsDev
         Description: App client secret for the User Pool App Client
         Value: !GetAtt UserPoolAppClient.ClientSecret
-    UserPoolIdentityProviderGoogle:
-        Description: Google Congnito Provider ID
-        Value: !Ref UserPoolIdentityProviderGoogle
     UserVideoInputS3BucketName:
         Description: User Video Content Input Bucket Name
         Value: !Ref UserVideoInputS3Bucket
@@ -603,11 +599,3 @@ Outputs:
     MediaConvertTriggerLambdaName:
         Description: Media Convert Trigger Lambda Function Event by S3
         Value: !Ref MediaConvertTriggerLambda
-
-    # UserRegisterTriggerLambda:
-    #     Description: User Register Trigger Lambda ID
-    #     Value: !Ref UserRegisterTriggerLambda
-
-    # SampleTable:
-    #     Description: Sample Dynamodb Table
-    #     Value: !Ref SampleTable

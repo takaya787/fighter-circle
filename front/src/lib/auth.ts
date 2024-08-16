@@ -1,6 +1,6 @@
-import axios from 'axios';
 import { AuthOptions, getServerSession } from 'next-auth';
 import CognitoProvider from 'next-auth/providers/cognito';
+import { DynamodbFetcher } from '@/service/DynamodbFetcher';
 import { refreshCognitoToken } from './refreshCognitoToken';
 
 const authOptions: AuthOptions = {
@@ -22,13 +22,17 @@ const authOptions: AuthOptions = {
 
     callbacks: {
         async signIn({ user, profile }) {
-            // user dataを同期させる
-            // await axios.post('http://localhost:3000/auth/sign_up', {
-            //     id: user.id,
-            //     email: user.email,
-            //     preferred_username: profile?.preferred_username ?? 'not_name',
-            //     email_verified: profile!.email_verified,
-            // });
+            // production以外ではapiを通してuser dataを同期させる
+            if (process.env.NODE_ENV !== 'production') {
+                const dynamodbFetcher = new DynamodbFetcher('sample token');
+
+                await dynamodbFetcher.post('/auth/sign_up', {
+                    id: user.id,
+                    email: user.email,
+                    preferred_username: profile?.preferred_username ?? 'not_name',
+                    email_verified: profile!.email_verified,
+                });
+            }
 
             return true;
         },
