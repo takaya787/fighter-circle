@@ -1,0 +1,25 @@
+{
+    "event": {
+        "version": "1",
+        "region": "ap-northeast-1",
+        "userPoolId": "ap-northeast-1_bhDgHr5FO",
+        "userName": "Google_114458546647275216695",
+        "callerContext": {
+            "awsSdkVersion": "aws-sdk-unknown-unknown",
+            "clientId": "japh73es91712ddmni4t22b6n"
+        },
+        "triggerSource": "PostConfirmation_ConfirmSignUp",
+        "request": {
+            "userAttributes": {
+                "sub": "a704ea48-f001-7028-f04a-1c2023a264e9",
+                "email_verified": "true",
+                "identities": "[{\"dateCreated\":\"1724112886055\",\"userId\":\"114458546647275216695\",\"providerName\":\"Google\",\"providerType\":\"Google\",\"issuer\":null,\"primary\":\"true\"}]",
+                "cognito:user_status": "EXTERNAL_PROVIDER",
+                "preferred_username": "ebino takaya",
+                "email": "sumigokochi2020@gmail.com",
+                "picture": "https://lh3.googleusercontent.com/a/ACg8ocKngkdcmorrdZtBvLDja9D63H-tSkGBqgguY-Tu8sX2_fQdmQ=s96-c"
+            }
+        },
+        "response": {}
+    }
+}

@@ -259,6 +259,8 @@ Resources:
                   AttributeDataType: String
                   Required: true
                   Mutable: true
+            LambdaConfig:
+                PostConfirmation: !GetAtt UserPostConfirmationTriggerLambda.Arn
     UserPoolDomain:
         Type: AWS::Cognito::UserPoolDomain
         Properties:
@@ -312,6 +314,32 @@ Resources:
                 email_verified: email_verified
                 preferred_username: name
                 picture: picture
+    UserPoolPostConfirmationTriggerPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            FunctionName: !GetAtt UserPostConfirmationTriggerLambda.Arn
+            Principal: cognito-idp.amazonaws.com
+            SourceArn: !GetAtt UserPool.Arn
+    UserPostConfirmationTriggerLambda:
+        Type: AWS::Serverless::Function
+        Metadata:
+            <<: *CommonFunctionMetadata
+        Properties:
+            Policies:
+                - DynamoDBCrudPolicy:
+                      TableName: !FindInMap [EnvironmentMapping, !Ref Environment, UserTableName]
+            FunctionName: !Sub ${SystemName}-${Environment}-user-post-confirmation-trigger
+            Description: Trigger Function for User Cognito Post Confirmation
+            CodeUri: src/jobs/user_post_confirmation
+            Handler: app.lambdaHandler
+            Runtime: nodejs20.x
+            Architectures:
+                - x86_64
+            Timeout: 180
+            Environment:
+                Variables:
+                    ENVIRONMENT: !Ref Environment
     UserVideoInputS3Bucket:
         Type: AWS::S3::Bucket
         Properties:
@@ -453,7 +481,7 @@ Resources:
             <<: *CommonFunctionMetadata
         Properties:
             FunctionName: !Sub ${SystemName}-start-media-convert-job-${Environment}
-            Description: Trigger an Elemental MediaConvert job
+            Description: Trigger Function for Elemental MediaConvert
             CodeUri: src/jobs/start_media_convert
             Handler: app.lambdaHandler
             Runtime: nodejs20.x
