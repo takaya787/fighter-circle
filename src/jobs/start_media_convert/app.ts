@@ -1,14 +1,22 @@
-import { S3Event, Context } from 'aws-lambda';
+import { S3Event } from 'aws-lambda';
 import { S3, MediaConvert } from 'aws-sdk';
 import { removeKeyExtention } from '@/lib/extentionFormatter';
 
 // https://dev.classmethod.jp/articles/mediaconvert-s3-auto-convert-cfn/
 // 上記の記事をtsに変換
 
-export const lambdaHandler = async (event: S3Event, context: Context): Promise<void> => {
+export const lambdaHandler = async (event: S3Event): Promise<void> => {
     console.debug('EVENT: ' + JSON.stringify(event));
     console.log('EVENT: ' + JSON.stringify(event));
 
+    if (process.env.NODE_ENV !== 'production') {
+        console.log('Env: ' + JSON.stringify(process.env));
+    }
+
+    await enqueueMediaConvertJob(event);
+};
+
+const enqueueMediaConvertJob = async (event: S3Event) => {
     const endpointUrl = process.env.ENDPOINT_URL!;
     const outputBucket = process.env.OUTPUT_BUCKET!;
     const mediaConvertJobTemplateArn = process.env.MEDIA_CONVERT_JOB_TEMPLATE_ARN!;
@@ -23,8 +31,6 @@ export const lambdaHandler = async (event: S3Event, context: Context): Promise<v
     const inputFile = `s3://${s3InputBucket}/${s3Key}`;
 
     const outputFile = `s3://${outputBucket}/${removeKeyExtention(s3Key)}`;
-
-    console.log('Env: ' + JSON.stringify(process.env));
 
     try {
         const jobObject = await s3.getObject({ Bucket: s3InputBucket, Key: 'job.json' }).promise();
