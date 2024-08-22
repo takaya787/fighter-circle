@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Upload, X } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
-import { DynamodbFetcher } from '@/service/DynamodbFetcher';
+import { APIClient } from '@/service/APIClient';
 import { FileSizeValidator } from '@/lib/fileSizeValidator';
 import { useVideoUpload } from '@/hooks/useVideoUpload';
 import { LoadingScreen } from '@/components/LoadingScreen';
@@ -29,7 +29,7 @@ export const UserVideoUploadModal: React.FC<{ userId: string; token: string }> =
 
     const validator = new FileSizeValidator(MAX_FILE_SIZE);
 
-    const dynamodbFetcher = new DynamodbFetcher(token);
+    const apiClient = new APIClient(token);
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
         setErrorMessage('');
@@ -88,7 +88,7 @@ export const UserVideoUploadModal: React.FC<{ userId: string; token: string }> =
         try {
             const { key, format } = await uploadVideo(localVideo);
 
-            await dynamodbFetcher.post(`/users/${userId}/user_videos`, { key: key, format: format });
+            await apiClient.post(`/users/${userId}/user_videos`, { key: key, format: format });
             addSnackbar({
                 key: 'Upload Complete',
                 text: `Upload Completed! file_name: ${localVideo.name}`,

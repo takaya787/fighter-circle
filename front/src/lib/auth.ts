@@ -1,6 +1,6 @@
 import { AuthOptions, getServerSession } from 'next-auth';
 import CognitoProvider from 'next-auth/providers/cognito';
-import { DynamodbFetcher } from '@/service/DynamodbFetcher';
+import { APIClient } from '@/service/APIClient';
 import { refreshCognitoToken } from './refreshCognitoToken';
 
 const authOptions: AuthOptions = {
@@ -24,9 +24,9 @@ const authOptions: AuthOptions = {
         async signIn({ user, profile }) {
             // production以外ではapiを通してuser dataを同期させる
             if (process.env.NODE_ENV !== 'production') {
-                const dynamodbFetcher = new DynamodbFetcher('sample token');
+                const apiClient = new APIClient('sample token');
 
-                await dynamodbFetcher.post('/auth/sign_up', {
+                await apiClient.post('/auth/sign_up', {
                     id: user.id,
                     email: user.email,
                     preferred_username: profile?.preferred_username ?? 'not_name',

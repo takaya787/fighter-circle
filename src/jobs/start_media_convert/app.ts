@@ -24,7 +24,6 @@ const enqueueMediaConvertJob = async (event: S3Event) => {
     const mediaConvertQue = process.env.MEDIA_CONVERT_QUE!;
 
     const mediaconvert = new MediaConvert({ region: 'ap-northeast-1', endpoint: endpointUrl });
-    const s3 = new S3();
 
     const s3InputBucket = event.Records[0].s3.bucket.name;
     const s3Key = event.Records[0].s3.object.key;
@@ -33,9 +32,6 @@ const enqueueMediaConvertJob = async (event: S3Event) => {
     const outputFile = `s3://${outputBucket}/${removeKeyExtention(s3Key)}`;
 
     try {
-        const jobObject = await s3.getObject({ Bucket: s3InputBucket, Key: 'job.json' }).promise();
-        const jobSettings = JSON.parse(jobObject.Body!.toString('utf-8'));
-
         jobSettings.OutputGroups[0].OutputGroupSettings.FileGroupSettings.Destination = outputFile;
         jobSettings.Inputs[0].FileInput = inputFile;
 
@@ -58,4 +54,29 @@ const enqueueMediaConvertJob = async (event: S3Event) => {
         );
         throw error;
     }
+};
+
+const jobSettings = {
+    OutputGroups: [
+        {
+            Name: 'File Group',
+            OutputGroupSettings: {
+                Type: 'FILE_GROUP_SETTINGS',
+                FileGroupSettings: {
+                    Destination: '',
+                },
+            },
+        },
+    ],
+    Inputs: [
+        {
+            AudioSelectors: {
+                'Audio Selector 1': {
+                    DefaultSelection: 'DEFAULT',
+                },
+            },
+            FileInput: '',
+            TimecodeSource: 'ZEROBASED',
+        },
+    ],
 };

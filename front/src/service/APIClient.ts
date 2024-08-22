@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export class DynamodbFetcher {
+export class APIClient {
     private token: string;
 
     constructor(token: string) {
