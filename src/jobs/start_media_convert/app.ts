@@ -1,5 +1,5 @@
 import { S3Event } from 'aws-lambda';
-import { S3, MediaConvert } from 'aws-sdk';
+import { MediaConvert } from 'aws-sdk';
 import { removeKeyExtention } from '@/lib/extentionFormatter';
 
 // https://dev.classmethod.jp/articles/mediaconvert-s3-auto-convert-cfn/

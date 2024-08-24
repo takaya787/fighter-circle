@@ -75,15 +75,21 @@ Globals:
             AllowOrigin: !FindInMap [EnvironmentMapping, !Ref Environment, CorsAllowOrigin]
             AllowCredentials: true
     Function:
-        Timeout: 3
+        Timeout: 180
         MemorySize: 128
-
+        Runtime: nodejs20.x
+        Architectures:
+            - x86_64
+        CodeUri: src/handlers
         # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
         LoggingConfig:
             LogFormat: JSON
         Environment:
             Variables:
                 USER_TABLE_NAME: !FindInMap [EnvironmentMapping, !Ref Environment, UserTableName]
+                ENVIRONMENT: !Ref Environment
+                INPUT_USER_VIDEO_BUCKET_NAME: !Sub ${SystemName}-user-video-input-${Environment}
+                OUTPUT_USER_VIDEO_BUCKET_NAME: !Sub ${SystemName}-user-video-output-${Environment}
 
 Resources:
     ApiGateway:
@@ -106,11 +112,7 @@ Resources:
                 KeepNames: true
                 Target: 'es2020'
         Properties:
-            CodeUri: src/handlers
             Handler: app.lambdaHandler
-            Runtime: nodejs20.x
-            Architectures:
-                - x86_64
             Policies:
                 - DynamoDBCrudPolicy:
                       TableName: !FindInMap [EnvironmentMapping, !Ref Environment, UserTableName]
@@ -126,11 +128,7 @@ Resources:
         Metadata:
             <<: *CommonFunctionMetadata
         Properties:
-            CodeUri: src/handlers
             Handler: index.lambdaHandler
-            Runtime: nodejs20.x
-            Architectures:
-                - x86_64
             Policies:
                 - DynamoDBCrudPolicy:
                       TableName: !FindInMap [EnvironmentMapping, !Ref Environment, UserTableName]
@@ -180,11 +178,7 @@ Resources:
             Policies:
                 - DynamoDBCrudPolicy:
                       TableName: !FindInMap [EnvironmentMapping, !Ref Environment, UserTableName]
-            CodeUri: src/handlers
             Handler: index.lambdaHandler
-            Runtime: nodejs20.x
-            Architectures:
-                - x86_64
             Events:
                 AuthSignUp:
                     Type: Api
@@ -200,11 +194,7 @@ Resources:
             Policies:
                 - DynamoDBCrudPolicy:
                       TableName: !FindInMap [EnvironmentMapping, !Ref Environment, UserTableName]
-            CodeUri: src/handlers
             Handler: index.lambdaHandler
-            Runtime: nodejs20.x
-            Architectures:
-                - x86_64
             Events:
                 UserVideoFeed:
                     Type: Api
@@ -236,6 +226,30 @@ Resources:
                         RestApiId: !Ref ApiGateway
                         Path: /users/{user_id}/user_videos/{user_video_id}/increment
                         Method: put
+    VideoUploadFunction:
+        Type: AWS::Serverless::Function
+        Metadata:
+            <<: *CommonFunctionMetadata
+        Properties:
+            Policies:
+                - S3CrudPolicy:
+                      BucketName: !Sub ${SystemName}-user-video-input-${Environment}
+                - S3ReadPolicy:
+                      BucketName: !Sub ${SystemName}-user-video-output-${Environment}
+            Handler: index.lambdaHandler
+            Events:
+                VideoUploadPrepare:
+                    Type: Api
+                    Properties:
+                        RestApiId: !Ref ApiGateway
+                        Path: /upload/videos/prepare
+                        Method: post
+                VideoUploadComplete:
+                    Type: Api
+                    Properties:
+                        RestApiId: !Ref ApiGateway
+                        Path: /upload/videos/complete
+                        Method: post
 
     UserPool:
         Type: AWS::Cognito::UserPool
@@ -333,13 +347,9 @@ Resources:
             Description: Trigger Function for User Cognito Post Confirmation
             CodeUri: src/jobs/user_post_confirmation
             Handler: app.lambdaHandler
-            Runtime: nodejs20.x
-            Architectures:
-                - x86_64
-            Timeout: 180
-            Environment:
-                Variables:
-                    ENVIRONMENT: !Ref Environment
+            # Environment:
+            #     Variables:
+            #         ENVIRONMENT: !Ref Environment
     UserVideoInputS3Bucket:
         Type: AWS::S3::Bucket
         Properties:
@@ -484,10 +494,6 @@ Resources:
             Description: Trigger Function for Elemental MediaConvert
             CodeUri: src/jobs/start_media_convert
             Handler: app.lambdaHandler
-            Runtime: nodejs20.x
-            Architectures:
-                - x86_64
-            Timeout: 180
             MemorySize: 512
             Role: !GetAtt MediaConvertTriggerLambdaRole.Arn
             Environment:

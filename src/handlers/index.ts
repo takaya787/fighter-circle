@@ -15,6 +15,7 @@ import {
     getUserVideoFeedHandler,
 } from '@/handlers/user_videos';
 import { signUpHandler } from '@/handlers/auth/signUp';
+import { postVideoPrepare, postVideoComplete } from '@/handlers/upload/videos';
 
 export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     dynamodeDBClient;
@@ -48,6 +49,8 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
         { method: 'POST', path: '/items', handler: putItemHandler },
         { method: 'DELETE', path: '/items/:id', handler: deleteByIdHandler },
         { method: 'POST', path: '/auth/sign_up', handler: signUpHandler },
+        { method: 'POST', path: '/upload/videos/prepare', handler: postVideoPrepare },
+        { method: 'POST', path: '/upload/videos/complete', handler: postVideoComplete },
     ];
 
     // ルーティングロジック
