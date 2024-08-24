@@ -19,7 +19,7 @@ export class APIClient {
                     Accept: 'application/json',
                     Authorization: `Bearer ${this.token}`,
                     'Content-Type': 'application/json',
-                    withCredentials: true,
+                    'Access-Control-Allow-Origin': 'https://master.dh57he0tjj5rg.amplifyapp.com',
                 },
             });
 
@@ -41,8 +41,8 @@ export class APIClient {
                     ContentType: 'application/json',
                     Authorization: `Bearer ${this.token}`,
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                    withCredentials: true,
+                    'Access-Control-Allow-Origin': 'https://master.dh57he0tjj5rg.amplifyapp.com',
+                    // withCredentials: true,
                 },
             });
 
