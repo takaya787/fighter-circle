@@ -19,6 +19,7 @@ export class APIClient {
                     Accept: 'application/json',
                     Authorization: `Bearer ${this.token}`,
                     'Content-Type': 'application/json',
+                    withCredentials: true,
                 },
             });
 
@@ -41,6 +42,7 @@ export class APIClient {
                     Authorization: `Bearer ${this.token}`,
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*',
+                    withCredentials: true,
                 },
             });
 
