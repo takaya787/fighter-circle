@@ -45,6 +45,7 @@ export const UserVideoUploadModal: React.FC<{ userId: string; token: string }> =
 
     const { uploadVideo } = useVideoUpload(
         userId,
+        apiClient,
         useCallback(
             (progress: number) => {
                 setUploadProgress(progress);

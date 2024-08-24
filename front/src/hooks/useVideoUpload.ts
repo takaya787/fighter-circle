@@ -1,27 +1,27 @@
 import { CompletedPart } from '@aws-sdk/client-s3';
 import axios from 'axios';
+import { APIClient } from '@/service/APIClient';
 import { sleep } from '@/lib/utlis';
 
 const PART_SIZE = 10 * 1024 * 1024; // 10 MB
 
-export const useVideoUpload = (userId: string, setUploadProgress: (progress: number) => void) => {
+export const useVideoUpload = (userId: string, apiClient: APIClient, setUploadProgress: (progress: number) => void) => {
     const uploadVideo = async (file: File): Promise<{ key: string; format: string }> => {
         const fileName = file.name;
         const fileSize = file.size;
 
         setUploadProgress(1);
-        const response = await axios.post(
-            `/api/users/${userId}/videos`,
-            { fileName, fileSize },
-            { headers: { 'Content-Type': 'application/json' } }
+
+        const data = await apiClient.post<{ key: string; uploadId: string; presignedUrls: string[] }>(
+            '/upload/videos/prepare',
+            {
+                fileName,
+                fileSize,
+            }
         );
         setUploadProgress(10);
 
-        if (response.status !== 201) {
-            throw new Error(response.data.error);
-        }
-
-        const { key, uploadId, presignedUrls } = response.data;
+        const { key, uploadId, presignedUrls } = data;
         const uploadedCompletedParts = await uploadParts(file, presignedUrls);
         await completeUpload(uploadId, key, uploadedCompletedParts);
 
@@ -110,12 +110,7 @@ export const useVideoUpload = (userId: string, setUploadProgress: (progress: num
 
     const completeUpload = async (uploadId: string, key: string, completedParts: CompletedPart[]) => {
         try {
-            const res = await axios.post(
-                `/api/users/${userId}/videos/complete`,
-                { uploadId, key, completedParts },
-                { headers: { 'Content-Type': 'application/json' } }
-            );
-            return res;
+            await apiClient.post('/upload/videos/complete', { uploadId, key, completedParts });
         } catch (error) {
             console.error(`Error complete Multipart upload:`, error);
             throw error;

@@ -1,7 +1,8 @@
 'use client';
+
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Home, Search, PlusSquare, User, Menu } from 'lucide-react';
+import { Home, Menu, PlusSquare, Search, User } from 'lucide-react';
 
 export const HeaderMenu: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,7 +12,10 @@ export const HeaderMenu: React.FC = () => {
     };
     return (
         <header className="bg-red-600 text-white p-4 flex justify-between items-center">
-            <h1 className="text-2xl font-bold">FighterCircle</h1>
+            <Link href="/">
+                <h1 className="text-2xl font-bold">FighterCircle</h1>
+            </Link>
+
             <div className="relative">
                 <Menu className="w-6 h-6 cursor-pointer" onClick={toggleMenu} />
                 {isMenuOpen && (
