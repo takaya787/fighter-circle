@@ -12,7 +12,7 @@ export const useVideoUpload = (userId: string, apiClient: APIClient, setUploadPr
 
         setUploadProgress(1);
 
-        const data = await apiClient.post<{ key: string; uploadId: string; presignedUrls: string[] }>(
+        const data = await apiClient.postWithCors<{ key: string; uploadId: string; presignedUrls: string[] }>(
             '/upload/videos/prepare',
             {
                 fileName,
@@ -110,7 +110,7 @@ export const useVideoUpload = (userId: string, apiClient: APIClient, setUploadPr
 
     const completeUpload = async (uploadId: string, key: string, completedParts: CompletedPart[]) => {
         try {
-            await apiClient.post('/upload/videos/complete', { uploadId, key, completedParts });
+            await apiClient.postWithCors('/upload/videos/complete', { uploadId, key, completedParts });
         } catch (error) {
             console.error(`Error complete Multipart upload:`, error);
             throw error;

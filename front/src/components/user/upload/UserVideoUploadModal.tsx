@@ -89,7 +89,7 @@ export const UserVideoUploadModal: React.FC<{ userId: string; token: string }> =
         try {
             const { key, format } = await uploadVideo(localVideo);
 
-            await apiClient.post(`/users/${userId}/user_videos`, { key: key, format: format });
+            await apiClient.postWithCors(`/users/${userId}/user_videos`, { key: key, format: format });
             addSnackbar({
                 key: 'Upload Complete',
                 text: `Upload Completed! file_name: ${localVideo.name}`,

@@ -90,6 +90,7 @@ Globals:
                 ENVIRONMENT: !Ref Environment
                 INPUT_USER_VIDEO_BUCKET_NAME: !Sub ${SystemName}-user-video-input-${Environment}
                 OUTPUT_USER_VIDEO_BUCKET_NAME: !Sub ${SystemName}-user-video-output-${Environment}
+                CORS_ALLOW_ORIGIN: !FindInMap [EnvironmentMapping, !Ref Environment, CorsAllowOrigin]
 
 Resources:
     ApiGateway:

@@ -52,6 +52,29 @@ export class APIClient {
         }
     }
 
+    // web client用にproxyを用いてcorsの制限が掛からないようにさせる
+    public async postWithCors<T>(path: string, body: any): Promise<T> {
+        const url = `/api${path}`;
+        if (!this.token) {
+            throw new Error('Token is not set');
+        }
+
+        try {
+            const res = await axios.post(url, body, {
+                headers: {
+                    ContentType: 'application/json',
+                    Authorization: `Bearer ${this.token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            return res.data as T;
+        } catch (err) {
+            console.error(err);
+            throw new Error('API Error happend');
+        }
+    }
+
     public async put<T>(path: string, body: any): Promise<T> {
         const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${path}`;
         if (!this.token) {

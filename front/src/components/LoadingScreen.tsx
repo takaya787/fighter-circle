@@ -13,15 +13,7 @@ export const LoadingScreen: React.FC<LoadingModalProps> = ({ text, progress }) =
             <Loader className="animate-spin text-blue-500 mx-auto mb-4" size={48} />
             <p className="text-lg font-semibold mb-4">{text}</p>
             <div className="w-full bg-grey-700">
-                <Progress
-                    value={progress}
-                    className="w-full"
-                    color="blue"
-                    label={'done'}
-                    placeholder={undefined}
-                    onPointerEnterCapture={undefined}
-                    onPointerLeaveCapture={undefined}
-                />
+                <Progress value={progress} className="w-full" color="blue" label={'done'} />
             </div>
         </div>
     </div>
