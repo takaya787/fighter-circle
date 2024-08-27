@@ -1,14 +1,51 @@
 # Fighter-Circle
 
-## ローカル環境での AWS SAM の起動方法
+## プロジェクト概要
 
-ローカル環境で AWS SAM を起動するには、以下のコマンドを実行する必要があります:
+**Fighter-circle** は、格闘技愛好者向けに開発された SNS です。スパーリング動画などの活動を簡単に共有し、同じ格闘技に情熱を持つ仲間と繋がることができます。練習者、コーチ、ファンなど、誰でも参加できるコミュニティを提供します。
+
+**キャッチフレーズ:**  
+あなたの格闘技サークルがこの中に！  
+一緒に格闘技を楽しむ仲間を見つけよう！
+
+## 使用技術
+
+-   **TypeScript**: 全てのコードは TypeScript で記述されており、強力な型安全性とメンテナンス性が確保されています。
+-   **フロントエンド**: **Next.js 14** を使用しており、強力でスケーラブルな React アプリケーションのレンダリングを提供します。routign App router を採用しています。
+-   **バックエンド**: TypeScript で開発され、**AWS Lambda** によって効率的でサーバーレスな運用が可能です。
+-   **データベース**: DynamoDB を用いて開発されています。低コストでスケーラブルな開発が可能です
+-   **動画編集**: 投稿された動画を Streaming に対応できるように**AWS Media Convert**を用いた、動画編集を実施しています。
+
+## インフラ構成
+
+-   **ホスティング**: フロントエンドは **AWS Amplify Hosting** にホストされており、サーバーは **AWS SAM** (Serverless Application Model) を使用して管理されています。
+-   **CI/CD**: 継続的インテグレーション (CI) と継続的デプロイ (CD) は AWS のサービスを活用しており、AWS SAM を利用することで、開発環境と本番環境を分離してスムーズなデプロイを実現しています。
+
+## 主な機能
+
+-   **動画共有**: 専用の格闘技コミュニティ内でスパーリング動画をアップロード・共有する機能。
+
+## アプリの利用方法
+
+### アプリへのアクセス
+
+以下のリンクからデプロイされたアプリケーションにアクセスできます:
+
+[Application URL](https://master.dh57he0tjj5rg.amplifyapp.com/)
+
+### ローカル環境での実行方法
+
+アプリケーションをローカルでセットアップして実行する手順は以下の通りです。
+
+#### ステップ 1: Docker の設定
+
+以下のコマンドを実行して Docker が正しく設定されていることを確認してください:
 
 ```sh
 sudo ln -s ~/.docker/run/docker.sock /var/run/docker.sock
 ```
 
-## ローカルでの API 起動方法
+#### ステップ 2: ローカルでの API・Fronend 起動方法
 
 ローカル環境で API を起動するには、次のコマンドを使用します:
 
@@ -16,7 +53,13 @@ sudo ln -s ~/.docker/run/docker.sock /var/run/docker.sock
 npm run local:start
 ```
 
-## ローカルでの API 変更の追跡方法
+ローカル環境で Next js を起動するには、`front/`ディレクトリー下で次のコマンドを使用します:
+
+```sh
+npm run dev
+```
+
+#### ステップ 3:ローカルでの API 変更の追跡方法
 
 ローカル環境で API の変更を追跡するには、次のコマンドを使用します:
 
@@ -25,6 +68,8 @@ npm run local:watch
 ```
 
 watch と start のコマンドは、別々のタブで同時に実行する必要があります。
+
+# 以下は AWS SAM の説明
 
 This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders.
 
@@ -35,7 +80,7 @@ This project contains source code and supporting files for a serverless applicat
 
 The application uses several AWS resources, including Lambda functions and an API Gateway API. These resources are defined in the `template.yaml` file in this project. You can update the template to add AWS resources through the same deployment process that updates your application code.
 
-If you prefer to use an integrated development environment (IDE) to build and test your application, you can use the AWS Toolkit.  
+If you prefer to use an integrated development environment (IDE) to build and test your application, you can use the AWS Toolkit.
 The AWS Toolkit is an open source plug-in for popular IDEs that uses the SAM CLI to build and deploy serverless applications on AWS. The AWS Toolkit also adds a simplified step-through debugging experience for Lambda function code. See the following links to get started.
 
 -   [CLion](https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html)

@@ -1,0 +1,50 @@
+Parameters:
+    StackName:
+        Type: String
+    TableName:
+        Type: String
+    IsProd:
+        Type: Boolean
+Resources:
+    UserTable:
+        Type: AWS::DynamoDB::Table
+        Condition: !Ref isProd
+        Properties:
+            TableName: !Ref TableName
+            AttributeDefinitions:
+                - AttributeName: pk
+                  AttributeType: S
+                - AttributeName: sk
+                  AttributeType: S
+                - AttributeName: dynamodeEntity
+                  AttributeType: S
+                - AttributeName: gsi_sk_1
+                  AttributeType: S
+            KeySchema:
+                - AttributeName: pk
+                  KeyType: HASH
+                - AttributeName: sk
+                  KeyType: RANGE
+            LocalSecondaryIndexes:
+                - IndexName: local-created-index
+                  KeySchema:
+                      - AttributeName: pk
+                        KeyType: HASH
+                      - AttributeName: gsi_sk_1
+                        KeyType: RANGE
+                  Projection:
+                      ProjectionType: ALL
+            GlobalSecondaryIndexes:
+                - IndexName: dynamode-index
+                  KeySchema:
+                      - AttributeName: dynamodeEntity
+                        KeyType: HASH
+                      - AttributeName: gsi_sk_1
+                        KeyType: RANGE
+                  Projection:
+                      ProjectionType: ALL
+            BillingMode: PAY_PER_REQUEST
+            DeletionProtectionEnabled: !If [!Ref isProd, true, false]
+Outputs:
+    UserTableName:
+        Value: !Ref UserTable
