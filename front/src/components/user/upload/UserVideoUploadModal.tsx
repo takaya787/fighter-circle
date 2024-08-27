@@ -90,12 +90,12 @@ export const UserVideoUploadModal: React.FC<{ userId: string; token: string }> =
             const { key, format } = await uploadVideo(localVideo);
 
             await apiClient.postWithCors(`/users/${userId}/user_videos`, { key: key, format: format });
+
             addSnackbar({
                 key: 'Upload Complete',
-                text: `Upload Completed! file_name: ${localVideo.name}`,
+                text: 'Uploadが完了しました',
                 variant: 'success',
             });
-            router.refresh();
         } catch (error) {
             addSnackbar({ variant: 'error', text: 'Uploadに失敗しました。', key: 'FailedVideoUpload' });
             console.error('Upload failed:', error);
